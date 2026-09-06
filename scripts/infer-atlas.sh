@@ -18,8 +18,12 @@ alias_of() {
   case "$1" in
     chronista-plugins|plugin-chronista-style|plugin-team-bucciarati|plugin-vantage-point|plugin-creo-memories) echo "chronista-plugins" ;;
     claude-plugin-creo-memories) echo "creo-memories" ;;
-    chronista-hub|creo-id) echo "chronista-club" ;;
-    creo-ui) echo "Creo UI" ;;
+    creo-id) echo "chronista-club" ;;
+    claude-plugins|claude-plugin-*) echo "chronista-plugins" ;;
+    creo-ui|creoui) echo "creoui" ;;
+    club-unison) echo "unison" ;;
+    bikeboy|bikeboy-ladyland) echo "bikeboy-ladyland" ;;
+    objectrecords|objectrecords-io) echo "objectrecords-io" ;;
     go-fast-packing) echo "Go Fast Packing" ;;
     *) return 1 ;;
   esac
@@ -39,6 +43,6 @@ fi
 
 if atlas=$(alias_of "$name"); then echo "$atlas"; exit 0; fi
 case "$name" in
-  creo-memories|vantage-point|fleetstage|fleetflow|unison|cplp-sound-system|nexus|bokeboy|muuv) echo "$name"; exit 0 ;;
+  creo-memories|vantage-point|fleetstage|fleetflow|unison|cplp-sound-system|nexus|muuv|chronista-hub|chronista-club|maru|anycreative-tech) echo "$name"; exit 0 ;;
 esac
 exit 1
