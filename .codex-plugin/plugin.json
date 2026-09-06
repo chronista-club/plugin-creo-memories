@@ -15,5 +15,7 @@
     "knowledge-base"
   ],
   "license": "MIT",
-  "homepage": "https://github.com/chronista-club/plugin-creo-memories"
+  "homepage": "https://github.com/chronista-club/plugin-creo-memories",
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json"
 }

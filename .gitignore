@@ -3,3 +3,7 @@ node_modules/
 ${CLAUDE_PLUGIN_DATA}/
 *.log
 
+
+__pycache__/
+*.pyc
+dist/

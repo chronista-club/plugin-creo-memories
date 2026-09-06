@@ -16,6 +16,7 @@ cd "$REPO_PATH" 2>/dev/null || exit 1
 # repo 名 → atlas slug (同名は不要)
 alias_of() {
   case "$1" in
+    chronista-plugins|plugin-chronista-style|plugin-team-bucciarati|plugin-vantage-point|plugin-creo-memories) echo "chronista-plugins" ;;
     claude-plugin-creo-memories) echo "creo-memories" ;;
     chronista-hub|creo-id) echo "chronista-club" ;;
     creo-ui) echo "Creo UI" ;;

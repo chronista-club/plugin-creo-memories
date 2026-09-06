@@ -38,7 +38,7 @@
 | `locked_at` | **lock** = 消えない・隠れない・本文と状態が変わらない (D21)。atlas の移動、label の付け外し、関係、story / compass の再生成は**通る**。lock / unlock は人だけ。lock は TTL に勝つ |
 | `hot_until` | 今ホットな記憶 (期限つき) |
 | `priority` (1〜3) / `due_at` | やること の属性 |
-| `sender` / `channel` | **誰が書いたか / どこから** (D17)。server が MCP client の名乗り (`clientInfo.name`) から決める。agent が自分で名乗る必要は無い。`agents:claude` / `users:<id>` |
+| `sender` / `channel` | **誰が書いたか / どこから** (D17)。server が MCP client の名乗り (`clientInfo.name`) から決める。agent が自分で名乗る必要は無い。ホストの認証に対応する sender / `users:<id>` |
 | `ttl` | 一時の記憶 (期限で消える)。`update_memory({ ttl: null })` で永続に |
 | `place` | 物理の場所 (器だけ、iOS の速記から) |
 
@@ -50,8 +50,8 @@
 
 ## 自己と cache (D7 / D8 / D28)
 
-- 自己は actor 軸の atlas: 人は `/Personal`、agent は `/agent/<name>` (`/agent/claude`)。agent 共通の知識は `/agent`
-- **外部脳は一つ (creo)。local (`~/.claude/projects/<p>/memory/`) は写し** — 起動高速化と、creo に繋がらない時の可用性のため。同期は creo → local の一方向 (実装は plugin の次版)。local にしか無い事実を作らない: まず `/agent/claude` に remember、同じ手で local も更新
+- 自己は actor 軸の atlas: 人は `/Personal`、agent は `/agent/<name>` (`/agent/<自分>`)。agent 共通の知識は `/agent`
+- **外部脳は一つ (creo)。local (`~/.claude/projects/<p>/memory/`) は写し** — 起動高速化と、creo に繋がらない時の可用性のため。同期は creo → local の一方向 (実装は plugin の次版)。local にしか無い事実を作らない: まず `/agent/<自分>` に remember、同じ手で local も更新
 
 ## つながり (D29)
 

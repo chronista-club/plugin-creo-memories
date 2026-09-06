@@ -6,7 +6,7 @@
 
 1. instructions の「今日の脳」を読む (自動)。hook が出す atlas の手がかりを見る
 2. 続きなら `read({ resource: 'todo' })` で未完を確認し、直前の handoff を `search({ query: 'handoff', kind: 'handoff', atlasId })`
-3. 自分の癖が関係しそうなら `search({ query, atlasId: 'claude' })` と `search({ query, atlasId: 'agent' })`
+3. 自分の癖が関係しそうなら `search({ query, atlasId: '<解決した自分の Atlas ID>' })` と `search({ query, atlasId: '<解決した /agent の ID>' })`
 
 ## 2. 引き継ぐ (handoff) — context が尽きる前に (節目 / compaction の前 / 終える前)
 
@@ -35,7 +35,7 @@ remember({
 ## 4. 壊れた / 直した (incident / learning)
 
 - 起きたことは `kind: 'incident'` (出来事)、そこから得た規則は別に `kind: 'learning'` (考え) — 出来事は変わらず、学びは置き換わる
-- 学びが自分の癖なら `/agent/claude` へ (`atlasId: 'claude'`)、他 agent にも効くなら `/agent`
+- 学びが自分の癖なら `/agent/<自分>` へ (`atlasId: '<解決した自分の Atlas ID>'`)、他 agent にも効くなら `/agent`
 - 根拠の記憶へ `references` / `derivedFrom` で繋ぐ
 
 ## 5. やること (todo)
