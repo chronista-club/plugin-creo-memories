@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.57.0] - 2026-09-07
+
+### Added — creo → local memory の写し (spec 25 D8 / D28、F-2)
+- `scripts/sync-local-cache.sh`: この repo の atlas と `/agent/claude` `/agent` のうち label **`cache:claude`** が付いた記憶を `~/.claude/projects/<p>/memory/` に 1 記憶 = 1 file で写し、MEMORY.md (index) を作り直す。Claude Code の SessionStart から背景で (1 時間に 1 回、`CREO_SYNC_FORCE=1` で即時)。上限 `CREO_CACHE_MAX` (既定 150、更新日の新しい順)。creo に無い local file は消さず index の別節に並べる。認証は `~/.config/creo-memories/api-key` (chmod 600) → env `CREO_API_KEY` → 無ければ skip。file 名は 1 つの規則 (`derive_name`) で、共有 atlas の metadata を経路に使わない
+- SKILL §C / model.md: 手元に置きたい記憶は remember + label `cache:<自分>` (Claude は `cache:claude`)。local に直接書かない
+- `infer-atlas.sh`: alias を実在の atlas に (creo-ui → creoui、club-unison → unison、bikeboy → bikeboy-ladyland、chronista-hub は同名、`bokeboy` の誤字)
+- 初回の backfill (local → creo、1 回もの) と REST の `atlasId` 解決 + write gate は creo-memories 側 (#863)。内容は claude-plugin-creo-memories#27 (review 3 巡 PASS) と同じ
+
 ## [0.56.1] - 2026-09-07
 
 - MCP URL をサービス案内の `/` から実際の `/mcp` に修正。Codex の接続・OAuth メタデータ解決の失敗を解消する。
