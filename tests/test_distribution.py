@@ -7,6 +7,11 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 
 class Distribution(unittest.TestCase):
+    def test_mcp_transport_endpoint(self):
+        config=json.loads((ROOT/'.mcp.json').read_text())
+        self.assertEqual(config['mcpServers']['creo-memories']['url'],
+                         'https://mcp.creo-memories.in/mcp')
+
     def test_manifests_and_skills(self):
         claude = json.loads((ROOT/'.claude-plugin/plugin.json').read_text())
         codex = json.loads((ROOT/'.codex-plugin/plugin.json').read_text())

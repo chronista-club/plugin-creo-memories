@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.56.1] - 2026-09-07
+
+- MCP URL をサービス案内の `/` から実際の `/mcp` に修正。Codex の接続・OAuth メタデータ解決の失敗を解消する。
+- 接続先の回帰テストを追加。
+
 ## [0.56.0] - 2026-09-06
 
 - 新しい plugin-creo-memories リポジトリを正本とし、Claude Code / Codex の共有 skills と配布定義を追加。

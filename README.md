@@ -4,7 +4,7 @@ Shared Claude Code / Codex plugin for **creo-memories** — the external brain. 
 
 ## What it provides
 
-- **MCP server** `https://mcp.creo-memories.in/` (75 tools; tool descriptions are the source of truth)
+- **MCP server** `https://mcp.creo-memories.in/mcp` (75 tools; tool descriptions are the source of truth)
 - **Skill** `creo-memories` — purpose, the shape of the world (3 lineages × 16 kinds, marks, labels, lock, proposals, briefing, sender), the judgment for *what to write / where / when to read*, how to work with others, and the non-obvious traps. ≤ 120 lines. No mandates: the mechanical rules are enforced by the server
 - **Hooks** (4 events)
   - `SessionStart` — the atlas hint for this repo (the server does not know your cwd)
