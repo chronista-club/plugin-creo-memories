@@ -23,6 +23,7 @@ skills/creo-memories/
   reference/agent-atlas.md /agent and /agent/<self>, local as cache
 hooks/                     hooks.json, session-start.sh, pre-compact.sh
 scripts/infer-atlas.sh     cwd / git remote → atlas slug
+scripts/sync-local-cache.sh creo → ~/.claude/projects/<p>/memory/ (label cache:claude; Claude Code の SessionStart から背景で)
 ```
 
 ## Install
