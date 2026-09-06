@@ -1,0 +1,14 @@
+--- a/apps/creo-mcp-server/src/plugin-contract.test.ts
++++ b/apps/creo-mcp-server/src/plugin-contract.test.ts
+@@ -239,8 +239,9 @@
+     expect(pkg.name).toBe('creo-memories')
+     expect(pkg.version).toMatch(/^\d+\.\d+\.\d+$/)
+     const skill = readText('skills/creo-memories/SKILL.md')
+-    const fm = skill.match(/^version:\s*(\S+)/m)?.[1]
+-    expect(fm).toBe(pkg.version)
++    const frontmatter = skill.split('---', 3)[1] ?? ''
++    const fm = Bun.YAML.parse(frontmatter) as { metadata?: { version?: string } }
++    expect(fm.metadata?.version).toBe(pkg.version)
+   })
+
+   test('7. agent-atlas.md が /agent と /agent/claude を案内している', () => {
