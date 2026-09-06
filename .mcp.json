@@ -2,7 +2,7 @@
   "mcpServers": {
     "creo-memories": {
       "type": "http",
-      "url": "https://mcp.creo-memories.in/"
+      "url": "https://mcp.creo-memories.in/mcp"
     }
   }
 }
