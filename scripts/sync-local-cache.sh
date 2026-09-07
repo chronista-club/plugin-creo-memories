@@ -144,17 +144,25 @@ while IFS= read -r line; do
   title=$(printf '%s' "$line" | $JQ -r '(.content | split("\n")[0]) | sub("^#+ *"; "")')
   # YAML で素のまま置けない題 (": " や " #" や引用符を含む、特殊文字で始まる) は double-quoted (JSON の escape と互換)
   ytitle=$(printf '%s' "$title" | $JQ -R -r 'if test(": | #|[\"\\\\]|^[\\[\\]{}&*!|>%@`'"'"'-?,]|:$") then tojson else . end')
-  # creo 由来でない同名の local file は消さず退避する (消さない、の約束)
-  if [ -f "$mem_dir/$name.md" ] && ! grep -q '^  creo_id: ' "$mem_dir/$name.md"; then
-    mv -f "$mem_dir/$name.md" "$mem_dir/$name.local-only.md"
-  fi
+  # creo 由来でない同名の local file は、本文が違う時だけ退避する (消さない、の約束。同じ本文 = backfill 済の元 file なら
+  # 上書きで失うものは無い)
+  stash=""
+  if [ -f "$mem_dir/$name.md" ] && ! grep -q '^  creo_id: ' "$mem_dir/$name.md"; then stash="$mem_dir/$name.md"; fi
   typ=$(printf '%s' "$line" | $JQ -r '.metadata.cache.type // (if .kind == "learning" then "feedback" elif .kind == "reference" then "reference" else "project" end)')
   {
     printf -- '---\nname: %s\ndescription: %s\nmetadata:\n  type: %s\n  creo_id: %s\n  kind: %s\n  updated_at: %s\n---\n\n' \
       "$name" "$ytitle" "$typ" "$(printf '%s' "$line" | $JQ -r '.id')" \
       "$(printf '%s' "$line" | $JQ -r '.kind // "未整理"')" "$(printf '%s' "$line" | $JQ -r '.updated_at // .updatedAt // ""')"
     printf '%s' "$line" | $JQ -r '.content | split("\n") | .[1:] | (if .[0] == "" then .[1:] else . end) | join("\n")'
-  } > "$mem_dir/.$name.md.tmp" && mv -f "$mem_dir/.$name.md.tmp" "$mem_dir/$name.md" || { echo "creo-sync: 書けなかった: $name"; continue; }
+  } > "$mem_dir/.$name.md.tmp" || { echo "creo-sync: 書けなかった: $name"; rm -f "$mem_dir/.$name.md.tmp"; continue; }
+  if [ -n "$stash" ]; then
+    # frontmatter を除いた本文 (空行と末尾の空白を落として) が同じなら退避しない
+    body_of() { awk 'BEGIN{n=0} /^---$/{n++; next} n>=2 && !/^[[:space:]]*$/ {sub(/[[:space:]]+$/, ""); print}' "$1"; }
+    if [ "$(body_of "$stash" | shasum)" != "$(body_of "$mem_dir/.$name.md.tmp" | shasum)" ]; then
+      mv -f "$stash" "$mem_dir/$name.local-only.md"
+    fi
+  fi
+  mv -f "$mem_dir/.$name.md.tmp" "$mem_dir/$name.md" || { echo "creo-sync: 書けなかった: $name"; continue; }
   written+=("$name")
   count=$((count + 1))
 done < "$tmp"
