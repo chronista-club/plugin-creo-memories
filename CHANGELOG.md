@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.57.1] - 2026-09-07
+
+- `infer-atlas.sh`: 表に無い repo でも repo 名をそのまま atlas の手がかりとして出す (atlas が実在するかは server が解決。旧は許可表に無いと何も出さず、creo-elb のように repo と同名の atlas を作っても sync が拾わなかった)
+- `sync-local-cache.sh`: creo 由来でない同名の local file は**本文が違う時だけ** `.local-only.md` に退避する (backfill 直後の元 file は同じ本文なので上書きで失うものが無い。旧は必ず退避して index の「local にしか無い」に同じ本文が並んだ)
+
 ## [0.57.0] - 2026-09-07
 
 ### Added — creo → local memory の写し (spec 25 D8 / D28、F-2)
