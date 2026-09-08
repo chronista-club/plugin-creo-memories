@@ -84,12 +84,19 @@ label_id=$(curl -sS -m 30 "$BASE/api/labels" -H "X-API-Key: $key" 2>/dev/null \
 [ -z "$label_id" ] && { echo "creo-sync: label $LABEL が無い (label_create してから)"; exit 0; }
 
 fetch_atlas() {
-  # $1 = atlas (id / slug / 表示名)。label 付きの記憶を page で全部取る (1 page 100 件)
-  local a="$1" page=1 got
+  # $1 = atlas (id / slug / 表示名)。label 付きの記憶を page で全部取る (1 page 100 件)。
+  # 「atlas が無い」(400、creo 2026-09-08 から未解決の atlas はエラー) はその atlas が 0 件 = 失敗ではない
+  # (repo 名から推定した atlas は無いことが普通。失敗にすると atlas の無い repo で毎時間「前回の写しを残す」になる)
+  local a="$1" page=1 got code
   while :; do
-    got=$(curl -sS -m 30 -G "$BASE/api/memories" -H "X-API-Key: $key" \
+    got=$(curl -sS -m 30 -G -w '\n%{http_code}' "$BASE/api/memories" -H "X-API-Key: $key" \
       --data-urlencode "atlasId=$a" --data-urlencode "labelIds=$label_id" \
       --data-urlencode "limit=100" --data-urlencode "page=$page") || return 1
+    code=${got##*$'\n'}; got=${got%$'\n'*}
+    if [ "$code" = 400 ] && printf '%s' "$got" | $JQ -e '.error | strings | test("atlas が無い")' > /dev/null 2>&1; then
+      echo "creo-sync: atlas $a は creo に無い (0 件として写す)" >&2
+      return 0
+    fi
     printf '%s' "$got" | $JQ -e '.memories' > /dev/null 2>&1 || return 1
     printf '%s\n' "$got" | $JQ -c '.memories[]'
     [ "$(printf '%s' "$got" | $JQ '.memories | length')" -lt 100 ] && break
