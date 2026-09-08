@@ -51,6 +51,7 @@
 ## 自己と cache (D7 / D8 / D28)
 
 - 自己は actor 軸の atlas: 人は `/Personal`、agent は `/agent/<name>` (`/agent/<自分>`)。agent 共通の知識は `/agent`
+- **atlas を指す引数 (`atlasId` / `atlas_id`) は id / slug / 表示名のどれでも**。解決できない値は「atlas が無い」のエラー (2026-09-08 から読みも書きも。それまで読みは黙って 0 件だった)。推定名を渡す前に `read({ resource: "atlas" })` で実在を確かめる
 - **外部脳は一つ (creo)。local (`~/.claude/projects/<p>/memory/`) は写し** — 起動高速化と、creo に繋がらない時の可用性のため。同期は creo → local の一方向 (0.57.0、`scripts/sync-local-cache.sh`。Claude Code の SessionStart から背景で 1 時間に 1 回)。写すのは **label `cache:claude` が付いた記憶 ∩ (この repo の atlas ∪ `/agent/claude` ∪ `/agent`)**、上限 150 件 (更新日の新しい順、超えた分は index に件数だけ)。1 記憶 = 1 file (`metadata.cache.name` か題から file 名)、MEMORY.md は index。creo に無い local file は消さず index の別節に並ぶ (= local にしか無い事実の検出器)。認証は `~/.config/creo-memories/api-key` (chmod 600) か env `CREO_API_KEY`、無ければ黙って skip。local に直接書かない: remember + label `cache:<自分>`。Codex / Grok の local への写しは未実装 (label は同じ器)
 
 ## つながり (D29)

@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.57.3] - 2026-09-08
+
+- `sync-local-cache.sh`: creo が「atlas が無い」(400) を返す atlas はその分を 0 件として写す (失敗にしない)。creo-memories 2026-09-08 から未解決の atlas は読みでもエラーになるため、repo 名から推定した atlas が無い repo で毎時間「取得に失敗 (前回の写しを残す)」にならないように
+- model.md: atlas を指す引数は id / slug / 表示名、解決できなければ「atlas が無い」
+
 ## [0.57.2] - 2026-09-07
 
 - SKILL §E / model.md: `tags` 引数は無い (spec 25 D11、creo-memories 側で MCP / REST から撤去)。旧 tag の語彙は label に写した分だけ `labelIds` で引ける、本文に語があれば `search({ query })` で当たる
