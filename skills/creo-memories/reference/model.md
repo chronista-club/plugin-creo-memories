@@ -20,7 +20,7 @@
 | 考え (9) | `decision` (決めた) / `context` (背景) / `design` (設計) / `learning` (学び) / `spec` (仕様) / `idea` (思いつき) / `guide` (手順) / `plan` (計画) / `story` (物語、生成物) |
 | やること (1) | `todo` |
 
-**未整理 (kind 無し) は一級の状態** (D9)。急ぐ時は kind 無しで速記し、後で `propose({ kind: 'classify' })` か人が付ける。`category` / `tags` は deprecated — `category` は旧 → 新の対応表で `kind` に写される (対応の無い値だけ未整理)、`tags` は deprecated だが絞り込みとして効く。旧 tag を全部 (`metadata.tags` と `legacy_tags`、OR) 見るのは **query 無しの `search({ tags })`** — query を付けた semantic 経路は `legacy_tags` を見ない。label に写していない古い記憶を引く手段。新しく書くなら `kind` と `labelIds`。
+**未整理 (kind 無し) は一級の状態** (D9)。急ぐ時は kind 無しで速記し、後で `propose({ kind: 'classify' })` か人が付ける。`category` は deprecated — 旧 → 新の対応表で `kind` に写される (対応の無い値だけ未整理)。**`tags` 引数は無い** (D11、2026-09-07 に MCP / REST から撤去。旧 tag の語彙は `metadata.legacy_tags` に残るが検索の面には出ない。本文に語があれば embedding で当たる、残す価値のある語は label に)。新しく書くなら `kind` と `labelIds`。
 
 ## 語彙は label (文法だけ決まっている)
 
@@ -28,7 +28,7 @@
 - label は **ユーザー単位**。**文法は `family:leaf[:leaf]`** — `:` は構造 (左が広く右が狭い、`phase:2:waiting`)、`-` は語の中の連結 (`cross-project`)、`/` は atlas の path 専用で label には使わない、大小は無視 (key は小文字)。決まっているのは記号の使い方だけで、family も葉も自由
 - **agent も作れる** (D19 は 2026-09-06 に改訂。旧「人が作る」は撤回)。作る前に `label_list` で既存を見て、合う family に寄せる。増えた葉は `propose({ kind: 'label_merge' | 'decay' })` で手入れする。**server が見るのは長さ (≤64) と plan の上限 (slate 20 / desk 1,000) だけ**で、文法は弾かない (規約)
 - label は user 単位なので一覧は人ごとに違う (新しい user は 0 件)。family の例: `repo:<git remote の basename>` (他 atlas の code base を指す時だけ) / `priority:high|medium|low` / `size:s|m|l` / `phase:<n>[:<状態>]` / `mark:<人の印>` (dogfood、roadmap、backlog …) / `area:<技術や領域>` (surrealdb、mcp、deploy …)
-- 旧 tag は `metadata.legacy_tags` に残り、`search({ tags })` で引ける
+- 旧 tag は `metadata.legacy_tags` に残るだけ (検索の面には出ない。label に写したものだけ `labelIds` で引ける)
 
 ## 印と属性
 

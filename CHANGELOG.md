@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.57.2] - 2026-09-07
+
+- SKILL §E / model.md: `tags` 引数は無い (spec 25 D11、creo-memories 側で MCP / REST から撤去)。旧 tag の語彙は label に写した分だけ `labelIds` で引ける、本文に語があれば `search({ query })` で当たる
+
 ## [0.57.1] - 2026-09-07
 
 - `infer-atlas.sh`: 表に無い repo でも repo 名をそのまま atlas の手がかりとして出す (atlas が実在するかは server が解決。旧は許可表に無いと何も出さず、creo-elb のように repo と同名の atlas を作っても sync が拾わなかった)

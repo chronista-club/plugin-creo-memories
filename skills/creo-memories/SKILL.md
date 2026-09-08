@@ -2,7 +2,7 @@
 name: creo-memories
 description: creo-memories = 外部脳。context が尽きても、session / machine / model / 人をまたいで続きができる場所。書くのは「次に拾う誰かのため」、読むのは「自分が始めた気になる前」。
 metadata:
-  version: 0.57.1
+  version: 0.57.2
   tags: memory, external-brain, collaboration, chronista
 ---
 
@@ -70,7 +70,7 @@ lock と unlock / review 段の提案の受け入れ。agent は頼む・提案�
 - `annotate` は `targetMemoryId`、`get_annotations` は `memoryId`
 - `create_todo` に title は無い (content の 1 行目)。`priority` は `low | medium | high`
 - `read` の filter は strict (未知 key はエラー)。`resource` は `memory | atlas | todo`
-- `category` / `tags` は deprecated。`category` は対応表で `kind` に写る (対応の無い値は未整理)、`tags` は deprecated だが絞り込みとして効く (label に写していない古い記憶を引く手段。**query 無しの `search({ tags })`** が旧 tag を全部見る形)。新しく書くなら `kind` と `labelIds`
+- `category` は deprecated (対応表で `kind` に写る、対応の無い値は未整理)。**`tags` 引数は無い** (spec 25 D11、2026-09-07 に撤去)。旧 tag の語彙は label に写した分だけ引ける (`labelIds`)。本文に語があれば `search({ query })` で当たる
 - `remember` の `labelIds` に無い label を渡すとエラー (先に `label_create`)。label 名の `/` は atlas 専用で使わない、大小は同じ扱い (`Area:MCP` = `area:mcp`)
 - `update_memory` / `forget` / `supersede` は lock 中に 409。`generate_story` / `generate_compass` の再生成は lock を見ずに上書き
 - `search({ atlasId })` は子 atlas を含まない
