@@ -1,7 +1,7 @@
 {
   "name": "creo-memories",
   "description": "External brain for Claude Code and Codex — continue across sessions, machines, models and people via creo-memories",
-  "version": "0.57.1",
+  "version": "0.57.2",
   "author": {
     "name": "Chronista Club",
     "url": "https://github.com/chronista-club"
