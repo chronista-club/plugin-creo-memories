@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.58.0] - 2026-09-09
+
+- tools-map: `create_shared_context` / `list_shared_contexts` / `get_shared_context` / `add_to_shared_context` / `join_shared_context` / `leave_shared_context` の 6 本を外す。creo-memories 側で shared context (一時の共有作業場) を機能ごと撤去した (chronista-club/creo-memories PR、live で 1 件しか使われておらず web からも到達できなかった)
+
 ## [0.57.3] - 2026-09-08
 
 - `sync-local-cache.sh`: creo が「atlas が無い」(400) を返す atlas はその分を 0 件として写す (失敗にしない)。creo-memories 2026-09-08 から未解決の atlas は読みでもエラーになるため、repo 名から推定した atlas が無い repo で毎時間「取得に失敗 (前回の写しを残す)」にならないように
