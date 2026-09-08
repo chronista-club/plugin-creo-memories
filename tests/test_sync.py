@@ -43,15 +43,15 @@ class Sync(unittest.TestCase):
             curl = binary / 'curl'
             curl.write_text(FAKE_CURL)
             curl.chmod(0o755)
-            infer = Path(temp) / 'plugin'
             # infer-atlas が repo 名 ghost-repo を出すよう、cwd を同名 dir に
             cwd = Path(temp) / 'ghost-repo'
             cwd.mkdir()
-            env = dict(os.environ, HOME=str(home), PATH=str(binary) + os.pathsep + os.environ['PATH'], CREO_SYNC_FORCE='1', XDG_CACHE_HOME=str(Path(temp) / 'cache'))
+            # CI (ubuntu runner) は XDG_CONFIG_HOME を持つことがあり、api-key の探索先が HOME から外れて黙って skip する → 明示
+            env = dict(os.environ, HOME=str(home), PATH=str(binary) + os.pathsep + os.environ['PATH'], CREO_SYNC_FORCE='1', XDG_CACHE_HOME=str(Path(temp) / 'cache'), XDG_CONFIG_HOME=str(home / '.config'))
             env.pop('CLAUDE_PLUGIN_ROOT', None)
             result = subprocess.run(['bash', str(ROOT / 'scripts/sync-local-cache.sh'), '--cwd', str(cwd)], text=True, env=env, capture_output=True)
             self.assertEqual(result.returncode, 0, result.stderr)
-            self.assertIn('ghost-repo は creo に無い', result.stderr)
+            self.assertIn('ghost-repo は creo に無い', result.stderr, result.stdout + result.stderr)
             self.assertNotIn('取得に失敗', result.stdout + result.stderr)
             self.assertIn('件を写した', result.stdout)
             # claude / agent の分は写っている (atlas が無いことで全体を捨てない)
