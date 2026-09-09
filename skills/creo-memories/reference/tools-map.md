@@ -59,7 +59,6 @@ tool の説明文と引数は **MCP server の定義が SSOT** (`apps/creo-mcp-s
 | tool | いつ |
 |---|---|
 | `create_atlas` / `list_atlas` / `get_atlas_tree` / `update_atlas` / `delete_atlas` | project や `/agent/<name>` の器。slug / path で辿れる |
-| `invite_to_atlas` | 人を atlas に招く (message が届く) |
 | `update_presence` / `get_presence` | 今何をしているか / 誰がいるか |
 | `create_view` / `get_view` / `list_views` / `update_view` / `delete_view` | 記憶の見え方 (view) の定義 |
 
