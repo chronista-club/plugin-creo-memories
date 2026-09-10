@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.60.0] - 2026-09-10
+
+- tools-map: `update_presence` / `get_presence` を外す。creo-memories 側で presence (agent の在席・focus の共有) を機能ごと撤去した (chronista-club/creo-memories PR、live で一度も機能していなかった — 在席を保持していた WebSocket に agentId 付きで繋ぐ client が無く、応答は常に空。mako「使ってなかったならオミット、必要になった時にまた考える」)
+
 ## [0.59.0] - 2026-09-09
 
 - tools-map: `invite_to_atlas` (email 招待) を外す。creo-memories 側で email 招待の送る側を撤去し、招待は web の招待リンク (spec 21) に一本化した (chronista-club/creo-memories PR、相手のメールアドレスで指定する形は Apple の非公開メールで成立せず、email の存在 oracle でもあった)
