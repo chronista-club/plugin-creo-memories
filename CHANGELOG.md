@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.60.1] - 2026-09-12
+
+- hooks: Stop hook と PreToolUse hook の stdout を JSON にする (`{"systemMessage": …}` / `{"hookSpecificOutput": {"hookEventName": "PreToolUse", "additionalContext": …}}`)。**Codex は Stop hook の stdout を必ず JSON として parse する**ので、平文の `echo` は毎 turn「Hook failed — hook returned invalid stop hook JSON output」になっていた (mako 2026-09-12 報告)。Claude Code では平文も JSON も同じ「user に一言出す」挙動で、文言は変えていない
+
 ## [0.60.0] - 2026-09-10
 
 - tools-map: `update_presence` / `get_presence` を外す。creo-memories 側で presence (agent の在席・focus の共有) を機能ごと撤去した (chronista-club/creo-memories PR、live で一度も機能していなかった — 在席を保持していた WebSocket に agentId 付きで繋ぐ client が無く、応答は常に空。mako「使ってなかったならオミット、必要になった時にまた考える」)
