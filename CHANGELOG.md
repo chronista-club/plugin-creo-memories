@@ -6,7 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
-## [0.60.1] - 2026-09-12
+## [0.61.0] - 2026-09-12
+
+- search: `includeDescendants: true` で子 atlas も検索に含められるようになった (親 + read できる子孫。既定 false = その atlas だけ)。SKILL.md / tools-map.md / agent-atlas.md の「`atlasId` は子 atlas を含まない」を書き換え、`/agent` と `/agent/<自分>` は `search({ atlasId: '</agent の ID>', includeDescendants: true })` の一度で引ける (chronista-club/creo-memories 側の feat PR と対。server が先に merge されている前提 — 引数の追加なので server → plugin の順で CI が緑のまま)
 
 - hooks: Stop hook と PreToolUse hook の stdout を JSON にする (`{"systemMessage": …}` / `{"hookSpecificOutput": {"hookEventName": "PreToolUse", "additionalContext": …}}`)。**Codex は Stop hook の stdout を必ず JSON として parse する**ので、平文の `echo` は毎 turn「Hook failed — hook returned invalid stop hook JSON output」になっていた (mako 2026-09-12 報告)。Claude Code では平文も JSON も同じ「user に一言出す」挙動で、文言は変えていない
 

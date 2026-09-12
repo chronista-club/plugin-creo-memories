@@ -2,7 +2,7 @@
 name: creo-memories
 description: creo-memories = 外部脳。context が尽きても、session / machine / model / 人をまたいで続きができる場所。書くのは「次に拾う誰かのため」、読むのは「自分が始めた気になる前」。
 metadata:
-  version: 0.60.1
+  version: 0.61.0
   tags: memory, external-brain, collaboration, chronista
 ---
 
@@ -47,7 +47,7 @@ metadata:
 
 ### 読む
 - 「今日の脳」(やること / 考え / 出来事 / 提案 / lock 中) が instructions に届いていれば利用する。途中で `briefing({ atlasId })`
-- 前提にする前に `search({ query, atlasId })`。`atlasId` は子 atlas を含まない (`/agent` と `/agent/<自分>` は両方引く)
+- 前提にする前に `search({ query, atlasId })`。`atlasId` は既定でその atlas だけ。子 atlas も一緒に引くなら `search({ query, atlasId, includeDescendants: true })` (親 + read できる子孫。`/agent` を親にすれば `/agent/<自分>` も入る)
 - todo を始める前に `read({ resource: 'todo' })`。終えたら `complete_todo({ id })`
 
 ### 整える (提案する)
@@ -73,7 +73,7 @@ lock と unlock / review 段の提案の受け入れ。agent は頼む・提案�
 - `category` は deprecated (対応表で `kind` に写る、対応の無い値は未整理)。**`tags` 引数は無い** (spec 25 D11、2026-09-07 に撤去)。旧 tag の語彙は label に写した分だけ引ける (`labelIds`)。本文に語があれば `search({ query })` で当たる
 - `remember` の `labelIds` に無い label を渡すとエラー (先に `label_create`)。label 名の `/` は atlas 専用で使わない、大小は同じ扱い (`Area:MCP` = `area:mcp`)
 - `update_memory` / `forget` / `supersede` は lock 中に 409。`generate_story` / `generate_compass` の再生成は lock を見ずに上書き
-- `search({ atlasId })` は子 atlas を含まない
+- `search({ atlasId })` は既定で子 atlas を含まない。含めるなら `includeDescendants: true` (読めない子は黙って落ちる。`scope: 'all'` では無意味)
 
 recipes: [recipes.md](reference/recipes.md) / 地図: [tools-map.md](reference/tools-map.md)
 

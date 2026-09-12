@@ -7,7 +7,7 @@ tool の説明文と引数は **MCP server の定義が SSOT** (`apps/creo-mcp-s
 | tool | いつ |
 |---|---|
 | `briefing` | 「今日の脳」(やること / 考え / 出来事 / 提案 / lock 中)。session 開始時は同じものが instructions に自動で入る。途中で読み直す時に |
-| `search` | 過去の決定・経緯を前提にする前に。`kind` / `lineage` / `labelIds` / `sender` / `includeArchived` で絞れる。`atlasId` は子 atlas を含まない |
+| `search` | 過去の決定・経緯を前提にする前に。`kind` / `lineage` / `labelIds` / `sender` / `includeArchived` で絞れる。`atlasId` は既定でその atlas だけ、`includeDescendants: true` で子 atlas も (親 + read できる子孫) |
 | `read` | 構造で読む (`resource: memory \| atlas \| todo`、filter は strict = 未知 key はエラー)。todo の一覧はこれ |
 | `get_memory` | id / slug で 1 件。`expand: ['labels' \| 'provenance']` |
 | `list_recent_memories` | 直近の N 件 |
