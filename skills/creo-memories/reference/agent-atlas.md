@@ -27,7 +27,7 @@
 
 ## 読む
 
-- project atlas の「今日の脳」は注入済みか確認する。`/agent` と `/agent/<自分>` は自動注入が無い — 作業に関係しそうな時に自分で引く: `search({ query, atlasId: '<解決した /agent の ID>' })` と `search({ query, atlasId: '<解決した自分の Atlas ID>' })` (子 atlas を含まないので両方)
+- project atlas の「今日の脳」は注入済みか確認する。`/agent` と `/agent/<自分>` は自動注入が無い — 作業に関係しそうな時に自分で引く: `search({ query, atlasId: '<解決した /agent の ID>', includeDescendants: true })` (親 `/agent` + read できる子 = `/agent/<自分>` も一度に。他 agent の atlas も読めれば入る)
 
 ## 書く
 
