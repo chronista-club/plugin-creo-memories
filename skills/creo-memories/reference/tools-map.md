@@ -1,6 +1,6 @@
 # tools-map — 意図から tool へ
 
-tool の説明文と引数は **MCP server の定義が SSOT** (`apps/creo-mcp-server/src/tool-list.ts`、75 tool)。ここは「何をしたい時にどれか」の地図だけ。この表の 1 列目に出る名前の集合が server の一覧と一致することを creo-memories の CI (`plugin-contract.test.ts`) が検証する。引数は tool の説明文を読む (ここに写さない)。
+tool の説明文と引数は **MCP server の定義が SSOT** (`apps/creo-mcp-server/src/tool-list.ts`)。ここは「何をしたい時にどれか」の地図だけ。この表の 1 列目に出る名前の集合が server の一覧と一致することを creo-memories の CI (`plugin-contract.test.ts`) が検証する。引数は tool の説明文を読む (ここに写さない)。
 
 ## 読む — 始める前に、前提にする前に
 
@@ -10,6 +10,7 @@ tool の説明文と引数は **MCP server の定義が SSOT** (`apps/creo-mcp-s
 | `search` | 過去の決定・経緯を前提にする前に。`kind` / `lineage` / `labelIds` / `sender` / `includeArchived` で絞れる。`atlasId` は既定でその atlas だけ、`includeDescendants: true` で子 atlas も (親 + read できる子孫) |
 | `read` | 構造で読む (`resource: memory \| atlas \| todo`、filter は strict = 未知 key はエラー)。todo の一覧はこれ |
 | `get_memory` | id / slug で 1 件。`expand: ['labels' \| 'provenance']` |
+| `get_memory_image` | 記憶に付いた画像を image で見る (iOS の赤入れ = 写真・スクショに手書きで赤を入れた 1 枚)。赤の意味は画像を見て読む。本文は `get_memory` |
 | `list_recent_memories` | 直近の N 件 |
 | `get_annotations` / `get_provenance` / `get_relations` | 注釈の thread / 派生の系譜 / 関係の graph |
 | `get_process` / `detect_processes` | 記憶の連鎖 (Process) を読む / 候補を見つける |
