@@ -1,6 +1,6 @@
 # tools-map — 意図から tool へ
 
-tool の説明文と引数は **MCP server の定義が SSOT** (`apps/creo-mcp-server/src/tool-list.ts`、76 tool)。ここは「何をしたい時にどれか」の地図だけ。この表の 1 列目に出る名前の集合が server の一覧と一致することを creo-memories の CI (`plugin-contract.test.ts`) が検証する。引数は tool の説明文を読む (ここに写さない)。
+tool の説明文と引数は **MCP server の定義が SSOT** (`apps/creo-mcp-server/src/tool-list.ts`)。ここは「何をしたい時にどれか」の地図だけ。この表の 1 列目に出る名前の集合が server の一覧と一致することを creo-memories の CI (`plugin-contract.test.ts`) が検証する。引数は tool の説明文を読む (ここに写さない)。
 
 ## 読む — 始める前に、前提にする前に
 

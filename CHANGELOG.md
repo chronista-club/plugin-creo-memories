@@ -8,7 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.62.0] - 2026-09-24
 
-- tools-map: `get_memory_image` を足す。記憶に付いた画像 (iOS の赤入れ — 写真やスクショに Apple Pencil / 指で赤を入れた合成画像) を MCP の image content で返す tool (chronista-club/creo-memories 側の feat PR と対、design 45 Slice 1b)。**tool の追加なので plugin → server の順**に merge する (creo-memories の `plugin-contract.test.ts` は tool 名の集合が一致することを見るので、server を先に入れると server の PR が落ちる)
+- tools-map: `get_memory_image` を足す。記憶に付いた画像 (iOS の赤入れ — 写真やスクショに Apple Pencil / 指で赤を入れた合成画像) を MCP の image content で返す tool (chronista-club/creo-memories 側の feat PR と対、design 45 Slice 1b)。**tool の追加なので plugin → server の順**に merge する (creo-memories の `plugin-contract.test.ts` は tool 名の集合が一致することを見るので、server を先に入れると server の PR が落ちる。plugin を先に入れると、server の PR が入るまで creo-memories の nightly の plugin-contract が赤になる)
+- tools-map / README: tool の数を書くのをやめた (「75」は 0.55.0 から実際と合っておらず、contract test は名前の集合しか見ないので数のずれは誰も気づけない。一覧の正本は server の `tool-list.ts`)
 
 ## [0.61.0] - 2026-09-12
 
