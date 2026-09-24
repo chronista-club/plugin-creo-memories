@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.62.0] - 2026-09-24
+
+- tools-map: `get_memory_image` を足す。記憶に付いた画像 (iOS の赤入れ — 写真やスクショに Apple Pencil / 指で赤を入れた合成画像) を MCP の image content で返す tool (chronista-club/creo-memories 側の feat PR と対、design 45 Slice 1b)。**tool の追加なので plugin → server の順**に merge する (creo-memories の `plugin-contract.test.ts` は tool 名の集合が一致することを見るので、server を先に入れると server の PR が落ちる)
+
 ## [0.61.0] - 2026-09-12
 
 - search: `includeDescendants: true` で子 atlas も検索に含められるようになった (親 + read できる子孫。既定 false = その atlas だけ)。SKILL.md / tools-map.md / agent-atlas.md の「`atlasId` は子 atlas を含まない」を書き換え、`/agent` と `/agent/<自分>` は `search({ atlasId: '</agent の ID>', includeDescendants: true })` の一度で引ける (chronista-club/creo-memories 側の feat PR と対。server が先に merge されている前提 — 引数の追加なので server → plugin の順で CI が緑のまま)
