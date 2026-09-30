@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.62.2] - 2026-10-01
+
+- tools-map: `read` の memory の一覧は既定で置き換えられた記憶・仕舞った記憶を隠すこと、全件を数える / 消す時は filter に `includeSuperseded: true` と `includeArchived: true` を付けること、`delete_atlas` は記憶が残っていると拒否すること (隠れた記憶も数える) を書く。creo-memories 側で `read` の filter に `includeSuperseded` を足した PR と対 (**引数の追加なので server → plugin の順**に merge)。2026-09-27、Atlas を空にする作業で read の一覧が 61 件中 54 件しか返さなかった
+
 ## [0.62.1] - 2026-10-01
 
 - sync: MEMORY.md の索引の 1 行を `- <name>.md — <題>` にし、題を 40 字 (codepoint) で切って `…` を付ける。markdown のリンク `[name](name.md)` は名前を 2 回書いて 1 行の約半分 (平均 64 バイト) を食っていた (40 字 × 150 件の見積り: 20.7KB → 16.4KB)。MEMORY.md は毎 session 読み込まれ 24.4KB の上限があり、vantage-point では 126 件で 20.9KB まで育って Claude Code の hook に圧縮を促された (手で縮めても次の sync で戻る)。全文は各 file の `description` に残る

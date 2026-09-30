@@ -8,7 +8,7 @@ tool の説明文と引数は **MCP server の定義が SSOT** (`apps/creo-mcp-s
 |---|---|
 | `briefing` | 「今日の脳」(やること / 考え / 出来事 / 提案 / lock 中)。session 開始時は同じものが instructions に自動で入る。途中で読み直す時に |
 | `search` | 過去の決定・経緯を前提にする前に。`kind` / `lineage` / `labelIds` / `sender` / `includeArchived` で絞れる。`atlasId` は既定でその atlas だけ、`includeDescendants: true` で子 atlas も (親 + read できる子孫) |
-| `read` | 構造で読む (`resource: memory \| atlas \| todo`、filter は strict = 未知 key はエラー)。todo の一覧はこれ |
+| `read` | 構造で読む (`resource: memory \| atlas \| todo`、filter は strict = 未知 key はエラー)。todo の一覧はこれ。memory の一覧は既定で置き換えられた記憶と仕舞った記憶を隠す — Atlas の中身を全部数える / 消す時は filter に `includeSuperseded: true` と `includeArchived: true` |
 | `get_memory` | id / slug で 1 件。`expand: ['labels' \| 'provenance']` |
 | `get_memory_image` | 記憶に付いた画像を image で見る (iOS の赤入れ = 写真・スクショに手書きで赤を入れた 1 枚)。赤の意味は画像を見て読む。本文は `get_memory` |
 | `list_recent_memories` | 直近の N 件 |
@@ -59,7 +59,7 @@ tool の説明文と引数は **MCP server の定義が SSOT** (`apps/creo-mcp-s
 
 | tool | いつ |
 |---|---|
-| `create_atlas` / `list_atlas` / `get_atlas_tree` / `update_atlas` / `delete_atlas` | project や `/agent/<name>` の器。slug / path で辿れる |
+| `create_atlas` / `list_atlas` / `get_atlas_tree` / `update_atlas` / `delete_atlas` | project や `/agent/<name>` の器。slug / path で辿れる。`delete_atlas` は記憶が 1 件でも残っていると拒否する (一覧に出ない記憶も数える) |
 | `create_view` / `get_view` / `list_views` / `update_view` / `delete_view` | 記憶の見え方 (view) の定義 |
 
 ## session と運用
