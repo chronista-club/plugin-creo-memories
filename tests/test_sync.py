@@ -63,10 +63,13 @@ class Sync(unittest.TestCase):
             self.assertTrue(any(n.startswith('note-') for n in names), names)
             # index の 1 行は題を 40 字で切る (MEMORY.md は毎 session 読み込まれ、24.4KB の上限がある。
             # 2026-10-01 に 126 件で 20.9KB まで育ち hook に圧縮を促された)。file の description は全文
+            # 1 行は `- <name>.md — <題>`。markdown のリンク `[name](name.md)` は名前を 2 回書き、1 行の約半分
+            # (平均 64 バイト) を食っていた。index を読むのはモデルなので file 名が 1 回あれば足りる
             index = (mem_dirs[0] / 'MEMORY.md').read_text()
-            long_line = next(l for l in index.splitlines() if '](long-' in l)
-            self.assertIn('あ' * 40 + '…', long_line)
+            long_line = next(l for l in index.splitlines() if l.startswith('- long-'))
+            self.assertRegex(long_line, r'^- long-[^ ]+\.md — ' + 'あ' * 40 + '…$')
             self.assertNotIn('あ' * 41, long_line)
+            self.assertFalse(any(l.startswith('- [') for l in index.splitlines()), index)
             long_file = next(mem_dirs[0].glob('long-*.md')).read_text()
             self.assertIn('description: ' + 'あ' * 120, long_file)
 

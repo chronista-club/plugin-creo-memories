@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.62.1] - 2026-10-01
+
+- sync: MEMORY.md の索引の 1 行を `- <name>.md — <題>` にし、題を 40 字 (codepoint) で切って `…` を付ける。markdown のリンク `[name](name.md)` は名前を 2 回書いて 1 行の約半分 (平均 64 バイト) を食っていた (40 字 × 150 件の見積り: 20.7KB → 16.4KB)。MEMORY.md は毎 session 読み込まれ 24.4KB の上限があり、vantage-point では 126 件で 20.9KB まで育って Claude Code の hook に圧縮を促された (手で縮めても次の sync で戻る)。全文は各 file の `description` に残る
+
+
 ## [0.62.0] - 2026-09-24
 
 - tools-map: `get_memory_image` を足す。記憶に付いた画像 (iOS の赤入れ — 写真やスクショに Apple Pencil / 指で赤を入れた合成画像) を MCP の image content で返す tool (chronista-club/creo-memories 側の feat PR と対、design 45 Slice 1b)。**tool の追加なので plugin → server の順**に merge する (creo-memories の `plugin-contract.test.ts` は tool 名の集合が一致することを見るので、server を先に入れると server の PR が落ちる。plugin を先に入れると、server の PR が入るまで creo-memories の nightly の plugin-contract が赤になる)
