@@ -174,6 +174,20 @@ while IFS= read -r line; do
   count=$((count + 1))
 done < "$tmp"
 
+# index の 1 行。題 (file の description) を INDEX_TITLE_MAX 字 (codepoint) で切って … を付ける。
+# MEMORY.md は毎 session 読み込まれ 24.4KB の上限がある (2026-10-01、vantage-point で 126 件 20.9KB)。
+# 全文は file の description に残る (切るのは index だけ)。
+# 1 行は `- <name>.md — <題>`。markdown のリンク `[name](name.md)` は名前を 2 回書いて 1 行の約半分
+# (平均 64 バイト) を食う。index を読むのはモデルなので file 名が 1 回あれば足りる
+# (40 字 × 150 件の見積り: リンク形 20.7KB → この形 16.4KB)
+INDEX_TITLE_MAX=40
+index_line() {
+  local d
+  d=$(sed -n 's/^description: //p' "$mem_dir/$1.md" | head -1 | $JQ -R -r --argjson max "$INDEX_TITLE_MAX" \
+    'if startswith("\"") then (fromjson? // .) else . end | if length > $max then .[0:$max] + "…" else . end')
+  printf -- '- %s.md — %s\n' "$1" "$d"
+}
+
 # index を作り直す。creo 由来 → 本節、creo に無い local file → 別節 (消さない)
 {
   printf '# Memory Index\n\n'
@@ -181,8 +195,7 @@ done < "$tmp"
   [ "$omitted" -gt 0 ] && printf '> ⚠️ label cache:claude が %s 件あり、上限 %s を超えた %s 件を省いた (古い順。file は残るが index には載せない)。creo 側で label を外すか減衰を提案して減らす\n\n' "$total" "$MAX" "$omitted"
   for n in "${written[@]:-}"; do
     [ -z "$n" ] && continue
-    d=$(sed -n 's/^description: //p' "$mem_dir/$n.md" | head -1 | $JQ -R -r 'if startswith("\"") then (fromjson? // .) else . end')
-    printf -- '- [%s](%s.md) — %s\n' "$n" "$n" "$d"
+    index_line "$n"
   done
   local_only=()
   for f in "$mem_dir"/*.md; do
@@ -196,8 +209,7 @@ done < "$tmp"
   if [ ${#local_only[@]} -gt 0 ]; then
     printf '\n## local にしか無い (creo に未登録。正本は creo — remember して label cache:claude を)\n\n'
     for b in "${local_only[@]}"; do
-      d=$(sed -n 's/^description: //p' "$mem_dir/$b.md" | head -1 | $JQ -R -r 'if startswith("\"") then (fromjson? // .) else . end')
-      printf -- '- [%s](%s.md) — %s\n' "$b" "$b" "$d"
+      index_line "$b"
     done
   fi
 } > "$mem_dir/.MEMORY.md.tmp" && mv -f "$mem_dir/.MEMORY.md.tmp" "$index"
