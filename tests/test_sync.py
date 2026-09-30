@@ -24,7 +24,8 @@ if [ "$atlas" = "ghost-repo" ]; then
   [ -n "$w" ] && printf '\n400'
   exit 0
 fi
-printf '%s' '{"memories":[{"id":"mem_1","content":"# t\n\nbody","updated_at":"2026-09-08T00:00:00Z","kind":"context","metadata":{"cache":{"name":"note-'"$atlas"'","type":"project"}}}],"total":1}'
+long="$(printf 'あ%.0s' $(seq 1 120))"
+printf '%s' '{"memories":[{"id":"mem_1","content":"# t\n\nbody","updated_at":"2026-09-08T00:00:00Z","kind":"context","metadata":{"cache":{"name":"note-'"$atlas"'","type":"project"}}},{"id":"mem_2","content":"# '"$long"'\n\nbody","updated_at":"2026-09-08T00:00:00Z","kind":"context","metadata":{"cache":{"name":"long-'"$atlas"'","type":"project"}}}],"total":2}'
 [ -n "$w" ] && printf '\n200'
 exit 0
 '''
@@ -60,6 +61,14 @@ class Sync(unittest.TestCase):
             names = sorted(p.name for p in mem_dirs[0].glob('*.md'))
             self.assertIn('MEMORY.md', names)
             self.assertTrue(any(n.startswith('note-') for n in names), names)
+            # index の 1 行は題を 40 字で切る (MEMORY.md は毎 session 読み込まれ、24.4KB の上限がある。
+            # 2026-10-01 に 126 件で 20.9KB まで育ち hook に圧縮を促された)。file の description は全文
+            index = (mem_dirs[0] / 'MEMORY.md').read_text()
+            long_line = next(l for l in index.splitlines() if '](long-' in l)
+            self.assertIn('あ' * 40 + '…', long_line)
+            self.assertNotIn('あ' * 41, long_line)
+            long_file = next(mem_dirs[0].glob('long-*.md')).read_text()
+            self.assertIn('description: ' + 'あ' * 120, long_file)
 
 
 if __name__ == '__main__':
