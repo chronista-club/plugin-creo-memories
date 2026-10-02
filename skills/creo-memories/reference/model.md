@@ -26,7 +26,7 @@
 
 - 自由 tag は無い (D11)。語彙は **種類 + label**
 - label は **ユーザー単位**。**文法は `family:leaf[:leaf]`** — `:` は構造 (左が広く右が狭い、`phase:2:waiting`)、`-` は語の中の連結 (`cross-project`)、`/` は atlas の path 専用で label には使わない、大小は無視 (key は小文字)。決まっているのは記号の使い方だけで、family も葉も自由
-- **agent も作れる** (D19 は 2026-09-06 に改訂。旧「人が作る」は撤回)。作る前に `label_list` で既存を見て、合う family に寄せる。増えた葉は `propose({ kind: 'label_merge' | 'decay' })` で手入れする。**server が見るのは長さ (≤64) と plan の上限 (slate 20 / desk 1,000) だけ**で、文法は弾かない (規約)
+- **agent も作れる** (D19 は 2026-09-06 に改訂。旧「人が作る」は撤回)。作る前に `label_list` で既存を見て、合う family に寄せる。増えた葉は `propose({ kind: 'label_merge' | 'decay' })` で手入れする。**server が見るのは長さ (≤64) と plan の上限 (book 20 / desk 1,000) だけ**で、文法は弾かない (規約)
 - label は user 単位なので一覧は人ごとに違う (新しい user は 0 件)。family の例: `repo:<git remote の basename>` (他 atlas の code base を指す時だけ) / `priority:high|medium|low` / `size:s|m|l` / `phase:<n>[:<状態>]` / `mark:<人の印>` (dogfood、roadmap、backlog …) / `area:<技術や領域>` (surrealdb、mcp、deploy …)
 - 旧 tag は `metadata.legacy_tags` に残るだけ (検索の面には出ない。label に写したものだけ `labelIds` で引ける)
 
