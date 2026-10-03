@@ -2,7 +2,7 @@
 name: creo-memories
 description: creo-memories = 外部脳。context が尽きても、session / machine / model / 人をまたいで続きができる場所。書くのは「次に拾う誰かのため」、読むのは「自分が始めた気になる前」。
 metadata:
-  version: 0.62.3
+  version: 0.62.4
   tags: memory, external-brain, collaboration, chronista
 ---
 
@@ -67,7 +67,7 @@ lock と unlock / review 段の提案の受け入れ。agent は頼む・提案�
 
 ## E. 罠 (tool の説明文が SSOT。ここは非自明なものだけ)
 
-- `annotate` は `targetMemoryId`、`get_annotations` は `memoryId`
+- `annotate` は `targetMemoryId`、`get_annotations` は `memoryId`。注釈・返信・`remember({ annotates })` は対象の Atlas を継承し、明示した `atlasId` が優先。通常の `remember` で `atlasId` を省略すると Personal へ保存され、警告が返る。プロジェクトの記憶では保存先を明示する
 - `create_todo` に title は無い (content の 1 行目)。`priority` は `low | medium | high`
 - `read` の filter は strict (未知 key はエラー)。`resource` は `memory | atlas | todo`
 - `category` は deprecated (対応表で `kind` に写る、対応の無い値は未整理)。**`tags` 引数は無い** (spec 25 D11、2026-09-07 に撤去)。旧 tag の語彙は label に写した分だけ引ける (`labelIds`)。本文に語があれば `search({ query })` で当たる
