@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [0.62.3] - 2026-10-03
+
+- tools-map: `generate_story` / `generate_compass` の `locale` (書く言語、省略時 en) と、`update_atlas` の `compass_guide_id` / `story_guide_id` (Atlas ごとのコンパス / ストーリーの書き方、spec 29) を書く。呼び名を「羅針盤」から「コンパス」に。creo-memories 側の MCP の PR と対 (**引数の追加なので server → plugin の順**に merge)
+
 ## [0.62.2] - 2026-10-01
 
 - tools-map: `read` の memory の一覧は既定で置き換えられた記憶・仕舞った記憶を隠すこと、全件を数える / 消す時は filter に `includeSuperseded: true` と `includeArchived: true` を付けること、`delete_atlas` は記憶が残っていると拒否すること (隠れた記憶も数える) を書く。creo-memories 側で `read` の filter に `includeSuperseded` を足した PR と対 (**引数の追加なので server → plugin の順**に merge)。2026-09-27、Atlas を空にする作業で read の一覧が 61 件中 54 件しか返さなかった

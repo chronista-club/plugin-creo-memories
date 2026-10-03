@@ -28,7 +28,7 @@ tool の説明文と引数は **MCP server の定義が SSOT** (`apps/creo-mcp-s
 | `attach_or_ref` | 添付 (file) を紐付ける |
 | `link_external` | GitHub の PR / issue と対にする (`service` / `external_id` / `url`) |
 | `record_work_log` / `search_work_logs` | agent 間・人との会話の記録と検索 (`workLogType`) |
-| `generate_story` / `generate_compass` / `create_process` | atlas の物語 / 羅針盤 / 連鎖を生成 (再生成は上書き) |
+| `generate_story` / `generate_compass` / `create_process` | atlas の物語 / コンパス / 連鎖を生成 (再生成は上書き)。物語とコンパスは `locale` (`ja` / `en` / `ko`、省略時 en) で書く言語を決める。利用者の言語に合わせて渡す。Atlas に書き方が指定されていれば、それも使う |
 
 ## やること
 
@@ -59,7 +59,7 @@ tool の説明文と引数は **MCP server の定義が SSOT** (`apps/creo-mcp-s
 
 | tool | いつ |
 |---|---|
-| `create_atlas` / `list_atlas` / `get_atlas_tree` / `update_atlas` / `delete_atlas` | project や `/agent/<name>` の器。slug / path で辿れる。`delete_atlas` は記憶が 1 件でも残っていると拒否する (一覧に出ない記憶も数える) |
+| `create_atlas` / `list_atlas` / `get_atlas_tree` / `update_atlas` / `delete_atlas` | project や `/agent/<name>` の器。slug / path で辿れる。`delete_atlas` は記憶が 1 件でも残っていると拒否する (一覧に出ない記憶も数える)。`update_atlas` の `compass_guide_id` / `story_guide_id` で、コンパス / ストーリーの書き方にする記憶を指定する (`"null"` で外す。指定できるのはオーナー / admin で、この Atlas にあってオーナー / admin が書いた記憶だけ)。`metadata` は丸ごと置き換えだが、書き方の指定はそこでは変わらない |
 | `create_view` / `get_view` / `list_views` / `update_view` / `delete_view` | 記憶の見え方 (view) の定義 |
 
 ## session と運用
