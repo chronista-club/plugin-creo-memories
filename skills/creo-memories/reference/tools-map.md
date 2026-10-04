@@ -59,7 +59,7 @@ tool の説明文と引数は **MCP server の定義が SSOT** (`apps/creo-mcp-s
 
 | tool | いつ |
 |---|---|
-| `create_atlas` / `list_atlas` / `get_atlas_tree` / `update_atlas` / `delete_atlas` | project や `/agent/<name>` の器。slug / path で辿れる。`delete_atlas` は記憶が 1 件でも残っていると拒否する (一覧に出ない記憶も数える)。`update_atlas` の `compass_guide_id` / `story_guide_id` で、コンパス / ストーリーの書き方にする記憶を指定する (`"null"` で外す。指定できるのはオーナー / admin で、この Atlas にあってオーナー / admin が書いた記憶だけ)。`metadata` は丸ごと置き換えだが、書き方の指定はそこでは変わらない |
+| `create_atlas` / `list_atlas` / `get_atlas_tree` / `update_atlas` / `delete_atlas` | project や `/agent/<name>` の器。slug / path で辿れる。`delete_atlas` は記憶が 1 件でも残っていると拒否する (一覧に出ない記憶も数える)。`update_atlas` の `compass_guide_id` / `story_guide_id` で、コンパス / ストーリーの書き方にする記憶を指定する (`"null"` で外す。指定できるのはオーナー / admin で、この Atlas にあってオーナー / admin が書いた記憶だけ)。`compass_guide_enabled` / `story_guide_enabled` (boolean、既定 true) で、指定は残したまま生成に使うかを切り替える (オーナー / admin)。`metadata` は丸ごと置き換えだが、書き方の指定と有効 / 無効はそこでは変わらない |
 | `create_view` / `get_view` / `list_views` / `update_view` / `delete_view` | 記憶の見え方 (view) の定義 |
 
 ## session と運用

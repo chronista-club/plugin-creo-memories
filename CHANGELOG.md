@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.62.5] - 2026-10-04
+
+- tools-map: `update_atlas` の `compass_guide_enabled` / `story_guide_enabled` (コンパス / ストーリーの書き方を、指定は残したまま有効 / 無効にする、spec 29 REQ-GUIDE-006) を書く。creo-memories 側の PR と対 (**引数の追加なので server → plugin の順**に merge)
+
 ## [0.62.4] - 2026-10-03
 
 - 注釈・返信・remember(annotates) の Atlas 継承、明示 atlasId の優先、通常 remember の Personal fallback 警告を記載。対応する server 修正の展開後に有効。
