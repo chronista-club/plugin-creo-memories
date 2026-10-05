@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.62.7] - 2026-10-06
+
+- tools-map: 本文の型の旧名 (`markdown` 等) の記述を外す。server の公開 schema も MIME だけになった (旧名は server の中でだけ受ける。spec 31)。creo-memories #1037 と対 (値の絞りで key は変わらないので順序は問わない)
+
 ## [0.62.6] - 2026-10-06
 
 - tools-map: 本文の型を MIME で書く (spec 31)。`remember` の `contentType` は既定 `text/markdown`、ほかに `text/plain` / `text/html` / `application/json` / `application/yaml` / `text/csv` (旧名も受けるが正規名で書く)。`search` / `read` の filter に `contentType`、構造化データの item の `title`。creo-memories 側の PR と対 (**引数の追加なので server → plugin の順**に merge)
