@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.62.6] - 2026-10-06
+
+- tools-map: 本文の型を MIME で書く (spec 31)。`remember` の `contentType` は既定 `text/markdown`、ほかに `text/plain` / `text/html` / `application/json` / `application/yaml` / `text/csv` (旧名も受けるが正規名で書く)。`search` / `read` の filter に `contentType`、構造化データの item の `title`。creo-memories 側の PR と対 (**引数の追加なので server → plugin の順**に merge)
+
 ## [0.62.5] - 2026-10-04
 
 - tools-map: `update_atlas` の `compass_guide_enabled` / `story_guide_enabled` (コンパス / ストーリーの書き方を、指定は残したまま有効 / 無効にする、spec 29 REQ-GUIDE-006) を書く。creo-memories 側の PR と対 (**引数の追加なので server → plugin の順**に merge)
