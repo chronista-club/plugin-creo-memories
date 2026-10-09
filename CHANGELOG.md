@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.62.9] - 2026-10-09
+
+- tools-map: 本文の型に KDL (`application/vnd.kdl`) を足す (spec 31 / spec 32 段 2)。`remember` の `contentType` に書け、`search` / `read` の item の `title` は「KDL (1.2 KB)」の形。保存時の構文の検査はまだ無い。creo-memories #1058 と対 (**引数の値の追加なので server → plugin の順**に merge)
+
 ## [0.62.8] - 2026-10-06
 
 - tools-map: `briefing` と `get_memory` の返りが KDL になる (spec 32 段 1、KDL を Creo のプリンシパルな書式に)。本文は raw の複数行文字列 `#"""…"""#` の中がそのまま。今までの JSON は `format: 'json'` で取れる。他の tool は JSON のまま (server の env で tool ごとに徐々に移す)。creo-memories 側の PR と対 (**引数の追加なので server → plugin の順**に merge)
