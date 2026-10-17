@@ -40,6 +40,17 @@ metadata:
 - 既存の記憶に足すなら `annotate({ targetMemoryId, content })`。本文を書き換えるのは自分が書いた記憶の訂正だけ
 - 古い理解を新しい理解で置き換えたら `remember({ content, supersedes: ['mem_…'] })` か `supersede_memory({ id, supersededBy })`。消さない
 
+#### 新しい記録を保存する前に
+
+これから作る記憶・注釈・要約・引き継ぎの原稿に適用する。保存済みの記憶を推敲のために一括更新しない。
+
+- 結論を先に置き、確認したこと・未確認点・次の作業を必要に応じて分ける。短い記録に空の見出しや固定のひな形を足さない。
+- 誰が何を決めたか、何を確認したか、どの条件で次へ進めるかを読み取れるか確かめ、追いにくい箇所だけ直す。担当・原因・次の作業が不明なら推測で埋めない。
+- 保存前に原稿と根拠を照合する。数値・対象・条件・否定・確かさを保ち、「実装済み」「検証済み」「公開済み」を混同しない。「未確認」を「問題なし」に変えず、予定を完了として書かない。
+- ユーザーの発言や裁定の引用、コードはそのまま保つ。意味が明確な専門用語や箇条書きは残す。読みやすさのために必要な根拠を削らない。
+
+例: 「修正済み、実機未確認」を「修正は完了した。実機ではまだ確認していない」と分けても、「修正が完了し、正常に動作している」とは書かない。
+
 ### どこへ
 - project のことは **project の atlas** (session 開始の hook が手がかりを出す。無ければ `read({ resource: 'atlas' })`)
 - 自分の癖・訂正・失敗の post-mortem は **`/agent/<自分>`**、他 agent にも効く知識は `/agent`、project の文脈の学びは project atlas。**ホストの local memory は creo の写し** (Claude の例: `~/.claude/projects/<p>/memory/`)。次の session でも手元に置きたい記憶には label **`cache:<自分>`** (Claude は `cache:claude`) を付ける — Claude Code では hook が creo → local を生成する。local に直接書いた事実は次の同期で「creo に未登録」として index の別節に出る。詳細: [agent-atlas.md](reference/agent-atlas.md)
