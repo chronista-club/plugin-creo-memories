@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.63.0] - 2026-10-19
+
+- tools-map: `relate` / `unrelate` を足す (記憶どうしの線を後から張る / 外す。`references` / `extends` / `derived_from`)。recipes 7 の「仲間を足す・外すは supersedes で新しい版を作る」を `relate` / `unrelate` に書き換え (スレッドの id が変わらなくなる)。recipes 4 に「書いた後に気づいたら relate」。creo-memories の PR (tool の追加なので **plugin → server の順**。server の PR 番号は merge 時に本文へ) と対
+
 ## [0.62.10] - 2026-10-19
 
 - recipes: 7「スレッドを編む」を足す。スレッド = `kind: 'context'` + label `mark:thread`、本文は KDL の `thread "<題>" { now / waiting / remaining / note }` (値は自由文、行に `id="mem_…"`)、仲間は `references`。仲間を後から足す・外すのは今は `supersedes` で新しい版を作る。SKILL.md の「書く」から 1 行で指す。creo-memories #1111 (`/threads`) / #1112 (KDL のスレッドを欄で描く) と対 (使い方の追加なので server → plugin の順。server は v0.90.0)

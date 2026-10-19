@@ -36,7 +36,7 @@ remember({
 
 - 起きたことは `kind: 'incident'` (出来事)、そこから得た規則は別に `kind: 'learning'` (考え) — 出来事は変わらず、学びは置き換わる
 - 学びが自分の癖なら `/agent/<自分>` へ (`atlasId: '<解決した自分の Atlas ID>'`)、他 agent にも効くなら `/agent`
-- 根拠の記憶へ `references` / `derivedFrom` で繋ぐ
+- 根拠の記憶へ `references` / `derivedFrom` で繋ぐ。書いた後に気づいたら `relate({ from, to: ['mem_…'], type: 'derived_from' })`
 
 ## 5. やること (todo)
 
@@ -84,4 +84,5 @@ remember({
 - 行の `id="mem_…"` は 1 行に 1 つ、`mem_…` の宛名だけ (slug や UUID は不可)。その記憶が仲間 (`references`) にいれば、web は種類・題・完了を**今の状態で**出す — 題や状態を本文に写さない。id を付けた記憶は `references` にも入れる。文の無い `remaining id="mem_…"` は記憶の題で描かれる。web がこの id を記憶の題に描き替えるので、「id を本文に貼らない」の例外はこの属性だけ。文の中には書かない
 - 形に収まらない KDL (数・`id` 以外の属性・子を持つ欄、`id` が `mem_…` でない行、`thread` の外のノード) はスレッド全体が欄ではなく木で描かれる。KDL として読めなければ保存時に行・列が返るので、直して書き直す
 - 欄を進める: `patch_memory({ id, before, after })` (スレッドの id は変わらない)
-- 仲間を足す・外す: 今の MCP では `references` は記憶を作る時にしか張れない。上と同じ呼び出しで `references` を残す仲間と足す仲間の全部にし、`supersedes: ['<今のスレッドの id>']` にして新しい版を作る。label も関係も引き継がれないので全部渡し直す。スレッドの id は変わる (古い版は一覧から消え、古い版を指す注釈やリンクはそのまま)
+- 仲間を足す・外す: `relate({ from: '<スレッドの id>', to: ['mem_…'] })` / `unrelate({ from: '<スレッドの id>', to: ['mem_…'] })` (`type` 省略 = `references`)。スレッドの id は変わらない。足した仲間は本文の行にも `id="mem_…"` で書く (逆も同じ: 行から消したら `unrelate`)
+- スレッドを作り直す (`supersedes`) のは、話そのものが別の話になった時だけ (例: 3.3 系が終わって 3.4 系が始まった)。日々の更新は `patch_memory` と `relate` / `unrelate` で、同じ id のまま
