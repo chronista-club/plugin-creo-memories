@@ -46,7 +46,8 @@ list_todos({ atlasId })
 complete_todo({ id })
 ```
 - 進捗は todo に `annotate`。完了と結果と PR を 1 手なら `complete_with_context({ memory_id, result, url })`
-- 種類が todo でない記憶に priority は付かない (server が捨てて warn)
+- 種類が todo でない記憶に priority は付かない (作る時は server が捨てて warn、`update_todo` では ValidationError)
+- 優先度・期限を外す: `update_todo({ id, priority: null, dueAt: null })`。完了を外す: `update_todo({ id, status: 'pending' })`
 
 ## 6. 他 agent・人と
 
