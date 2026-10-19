@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.64.0] - 2026-10-20
+
+- tools-map: `update_memory` の `kind` (直接変えてよい、null で未整理に戻す。mako 裁定 2026-10-19) と `displayName` (題、作者だけ)、`update_todo` の `priority` / `dueAt` を null で外す、`update_todo` の `status` の語彙 (`pending` / `in_progress` / `completed`)。creo-memories #1117 と対 (**引数の追加なので server → plugin の順**)
+- tools-map: `unsupersede` を足す (間違えて付けた置き換えの印を外す)。creo-memories #1118 と対 (**tool の追加なので plugin → server の順**)
+- 文言を事実に揃える (棚卸し 2026-10-19): archive の書き口はまだ無い (forget の代わりは supersede)、`label_merge` / `decay` の提案は受け入れても記録だけ (適用まで進むのは `classify` と `label_create`)、`label_attach` の `labelIds` は名前でも、todo でない記憶への priority は `update_todo` では ValidationError
+
 ## [0.63.0] - 2026-10-19
 
 - tools-map: `relate` / `unrelate` を足す (記憶どうしの線を後から張る / 外す。`references` / `extends` / `derived_from`)。recipes 7 の「仲間を足す・外すは supersedes で新しい版を作る」を `relate` / `unrelate` に書き換え (スレッドの id が変わらなくなる)。recipes 4 に「書いた後に気づいたら relate」。creo-memories の PR (tool の追加なので **plugin → server の順**。server の PR 番号は merge 時に本文へ) と対

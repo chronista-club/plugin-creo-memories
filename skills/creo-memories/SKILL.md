@@ -2,7 +2,7 @@
 name: creo-memories
 description: creo-memories = 外部脳。context が尽きても、session / machine / model / 人をまたいで続きができる場所。書くのは「次に拾う誰かのため」、読むのは「自分が始めた気になる前」。
 metadata:
-  version: 0.63.0
+  version: 0.64.0
   tags: memory, external-brain, collaboration, chronista
 ---
 
@@ -53,8 +53,8 @@ metadata:
 
 ### 整える (提案する)
 - 種類が違う / label を足したい / 2 つが同じ / 矛盾している → `propose({ kind, target, change, reason })`。判断は人
-- label は先に `label_list()` で既存を見て、合うものを `label_attach({ memoryId, labelIds })`。無ければ文法の中で `label_create({ name })` (既存の family に寄せる。family の例: `repo:` / `priority:` / `size:` / `phase:` / `mark:` / `area:`)。似た label が並んだら `propose({ kind: 'label_merge' })`
-- 要らない記憶は `forget` より archive や supersede。lock 中は 409 — unlock は人に頼む
+- label は先に `label_list()` で既存を見て、合うものを `label_attach({ memoryId, labelIds })` (`labelIds` は id でも名前でも)。無ければ文法の中で `label_create({ name })` (既存の family に寄せる。family の例: `repo:` / `priority:` / `size:` / `phase:` / `mark:` / `area:`)。似た label が並んだら人に頼む (`propose({ kind: 'label_merge' })` は受け入れても今は記録だけで、統合は適用されない)
+- 要らない記憶は `forget` より supersede (archive の書き口はまだ無い)。lock 中は 409 — unlock は人に頼む
 
 ### 人だけができること
 lock と unlock / review 段の提案の受け入れ。agent は頼む・提案する。

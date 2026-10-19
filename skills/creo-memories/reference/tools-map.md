@@ -24,7 +24,7 @@ tool の説明文と引数は **MCP server の定義が SSOT** (`apps/creo-mcp-s
 | `remember` | 決めた / 学んだ / 壊れた / 渡す / 後で探す。`kind` を付ける (迷えば付けない = 未整理、後で提案が拾う)。`supersedes` で古い理解を置き換える。本文の型 `contentType` は MIME で書く: 既定 `text/markdown`、ほかに `text/plain` / `text/html` / `application/json` / `application/yaml` / `text/csv` / `application/vnd.kdl` (KDL)。agent が引くデータは JSON / YAML / CSV / KDL の型で置くと、壊れた JSON は保存時に止まり、web では整形・表で読める |
 | `annotate` / `reply_annotation` | 既存の記憶に進捗・訂正・議論を足す (`targetMemoryId`)。本文を書き換えるより先にこちら |
 | `append_memory` / `patch_memory` | 本文の末尾に足す / 一部を置換 (in-place) |
-| `update_memory` | 属性 (atlas / ttl / kind / metadata) や本文の全置換。lock 中は 409 |
+| `update_memory` | 属性 (atlas / ttl / `kind` / `displayName` / metadata) や本文の全置換。`kind` は直接変えてよい (null で未整理に戻す。未整理に付けるのはいつでも通る。種類が付いていて完了・置き換えの印もある記憶は変えられない)。判断を人に委ねたい時は `propose({ kind: 'classify' })`。`displayName` は題 (検索とスレッドで本文の見出しの代わりに出る。null か空で外す。作者だけ。名前で引く鍵にもなる)。lock 中は 409 |
 | `attach_or_ref` | 添付 (file) を紐付ける |
 | `link_external` | GitHub の PR / issue と対にする (`service` / `external_id` / `url`) |
 | `relate` / `unrelate` | 記憶どうしの線を後から張る / 外す (`from` → `to: [...]`、`type` は `references` (既定) / `extends` / `derived_from`)。張れるのは `from` の作者。`to` は読める記憶だけ (無い記憶と読めない記憶は同じ返り)。重複は何もしない、無い線を外すのも何もしない。注釈は `annotate`、置き換えは `supersede_memory` |
@@ -35,7 +35,7 @@ tool の説明文と引数は **MCP server の定義が SSOT** (`apps/creo-mcp-s
 
 | tool | いつ |
 |---|---|
-| `create_todo` / `update_todo` / `complete_todo` / `delete_todo` | やること の CRUD。title は無い (content の 1 行目が題)。`priority` / `dueAt` |
+| `create_todo` / `update_todo` / `complete_todo` / `delete_todo` | やること の CRUD。title は無い (content の 1 行目が題)。`priority` / `dueAt` (`update_todo` では null で外す)。`update_todo` の `status` は `pending` / `in_progress` / `completed` (記憶の `active` / `done` とは別の語。完了を外す = `status: 'pending'`) |
 | `list_todos` | 未完を priority 順に。`groupBy` / `labelIds` |
 | `complete_with_context` | 完了 + 結果 + 外部 link を 1 手で |
 
@@ -43,8 +43,8 @@ tool の説明文と引数は **MCP server の定義が SSOT** (`apps/creo-mcp-s
 
 | tool | いつ |
 |---|---|
-| `supersede_memory` | 古い記憶を新しい記憶で置き換えたと印を付ける (消さない) |
-| `forget` | 本当に要らない時だけ (lock 中は不可)。迷えば archive や supersede |
+| `supersede_memory` / `unsupersede` | 古い記憶を新しい記憶で置き換えたと印を付ける (消さない)。間違えて付けた印は `unsupersede({ id })` で外す (`id` は置き換えられた側。検索に戻る) |
+| `forget` | 本当に要らない時だけ (lock 中は不可)。迷えば supersede (archive の書き口はまだ無い) |
 | `label_list` / `label_create` / `label_attach` / `label_detach` | 先に `label_list` で既存を見る。合うものが無ければ文法 (`family:leaf`) の中で `label_create({ name })`。plan の上限は server が守る |
 | `propose` | 分類 / label の統合 / 蒸留 / 矛盾 / 減衰 / 重複 / 剪定の提案。判断は人 (review 段)。report 段 (decay / duplicate) は agent 同士でも閉じる |
 | `proposal_list` / `proposal_reject` / `proposal_revert` | 提案の一覧 / 却下 / 受け入れた提案を戻す。report 段 (decay / duplicate) の受け入れは agent もできる |
