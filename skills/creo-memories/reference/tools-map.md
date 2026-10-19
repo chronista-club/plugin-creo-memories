@@ -9,7 +9,7 @@ tool の説明文と引数は **MCP server の定義が SSOT** (`apps/creo-mcp-s
 | `briefing` | 「今日の脳」(やること / 考え / 出来事 / 提案 / lock 中)。session 開始時は同じものが instructions に自動で入る。途中で読み直す時に。返りは **KDL** (`briefing { todos { todo <id> … } … }`)。値をプログラムで拾うなら `format: 'json'` |
 | `search` | 過去の決定・経緯を前提にする前に。`kind` / `lineage` / `labelIds` / `sender` / `contentType` / `includeArchived` で絞れる (`contentType` は本文の型 = MIME、例 `application/json`)。JSON / YAML / CSV / KDL の記憶は item の `title` が「JSON (1.2 KB)」のような型と大きさ。`atlasId` は既定でその atlas だけ、`includeDescendants: true` で子 atlas も (親 + read できる子孫) |
 | `read` | 構造で読む (`resource: memory \| atlas \| todo`、filter は strict = 未知 key はエラー)。todo の一覧はこれ。memory の filter に `contentType` (本文の型) も使える。memory の一覧は既定で置き換えられた記憶と仕舞った記憶を隠す — Atlas の中身を全部数える / 消す時は filter に `includeSuperseded: true` と `includeArchived: true` |
-| `get_memory` | id / slug で 1 件。`expand: ['labels' \| 'provenance']`。返りは **KDL** (`memory <id> kind=… { content #"""…"""# }`、本文は `#"""` の中がそのまま)。値をプログラムで拾うなら `format: 'json'` |
+| `get_memory` | id / slug で 1 件。`expand: ['labels' \| 'provenance' \| 'versions']` (`versions` = 本文を書き換えた跡。新しい順に 20 件、いつ・誰が・どの道で・一言・前の本文の冒頭。記憶がどれだけ書き直されてきたか = 鮮度を読む時に)。返りは **KDL** (`memory <id> kind=… { content #"""…"""# }`、本文は `#"""` の中がそのまま)。値をプログラムで拾うなら `format: 'json'` |
 | `get_memory_image` | 記憶に付いた画像を image で見る (iOS の赤入れ = 写真・スクショに手書きで赤を入れた 1 枚)。赤の意味は画像を見て読む。本文は `get_memory` |
 | `list_recent_memories` | 直近の N 件 |
 | `get_annotations` / `get_provenance` / `get_relations` | 注釈の thread / 派生の系譜 / 関係の graph |
@@ -23,8 +23,8 @@ tool の説明文と引数は **MCP server の定義が SSOT** (`apps/creo-mcp-s
 |---|---|
 | `remember` | 決めた / 学んだ / 壊れた / 渡す / 後で探す。`kind` を付ける (迷えば付けない = 未整理、後で提案が拾う)。`supersedes` で古い理解を置き換える。本文の型 `contentType` は MIME で書く: 既定 `text/markdown`、ほかに `text/plain` / `text/html` / `application/json` / `application/yaml` / `text/csv` / `application/vnd.kdl` (KDL)。agent が引くデータは JSON / YAML / CSV / KDL の型で置くと、壊れた JSON は保存時に止まり、web では整形・表で読める |
 | `annotate` / `reply_annotation` | 既存の記憶に進捗・訂正・議論を足す (`targetMemoryId`)。本文を書き換えるより先にこちら |
-| `append_memory` / `patch_memory` | 本文の末尾に足す / 一部を置換 (in-place) |
-| `update_memory` | 属性 (atlas / ttl / `kind` / `displayName` / metadata) や本文の全置換。`kind` は直接変えてよい (null で未整理に戻す。未整理に付けるのはいつでも通る。種類が付いていて完了・置き換えの印もある記憶は変えられない)。判断を人に委ねたい時は `propose({ kind: 'classify' })`。`displayName` は題 (検索とスレッドで本文の見出しの代わりに出る。null か空で外す。作者だけ。名前で引く鍵にもなる)。lock 中は 409 |
+| `append_memory` / `patch_memory` | 本文の末尾に足す / 一部を置換 (in-place)。書き換える前の本文は版に残る (id は変わらない)。`note` に書き換えた理由を一言 (「待ちが解けた」等) 添えると、版を読む人に効く |
+| `update_memory` | 属性 (atlas / ttl / `kind` / `displayName` / metadata) や本文の全置換 (前の本文は版に残る。`note` で理由を一言)。`kind` は直接変えてよい (null で未整理に戻す。未整理に付けるのはいつでも通る。種類が付いていて完了・置き換えの印もある記憶は変えられない)。判断を人に委ねたい時は `propose({ kind: 'classify' })`。`displayName` は題 (検索とスレッドで本文の見出しの代わりに出る。null か空で外す。作者だけ。名前で引く鍵にもなる)。lock 中は 409 |
 | `attach_or_ref` | 添付 (file) を紐付ける |
 | `link_external` | GitHub の PR / issue と対にする (`service` / `external_id` / `url`) |
 | `relate` / `unrelate` | 記憶どうしの線を後から張る / 外す (`from` → `to: [...]`、`type` は `references` (既定) / `extends` / `derived_from`)。張れるのは `from` の作者。`to` は読める記憶だけ (無い記憶と読めない記憶は同じ返り)。重複は何もしない、無い線を外すのも何もしない。注釈は `annotate`、置き換えは `supersede_memory` |
