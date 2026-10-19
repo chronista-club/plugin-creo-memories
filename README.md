@@ -19,7 +19,7 @@ skills/creo-memories/
   SKILL.md                 A purpose / B world / C judgment / D with others / E traps
   reference/model.md       spec 25 summary (lineages, kinds, marks, label, lock, proposals, briefing, self & cache)
   reference/tools-map.md   intent → tool (all 75; verified by creo-memories CI)
-  reference/recipes.md     6 scenes: start / handoff / decision / incident / todo / with others
+  reference/recipes.md     7 scenes: start / handoff / decision / incident / todo / with others / thread
   reference/agent-atlas.md /agent and /agent/<self>, local as cache
 hooks/                     hooks.json, session-start.sh, pre-compact.sh
 scripts/infer-atlas.sh     cwd / git remote → atlas slug

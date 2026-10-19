@@ -73,14 +73,15 @@ remember({
 }`,
   contentType: 'application/vnd.kdl',
   kind: 'context',
-  labelIds: ['<mark:thread の label id>'],
+  labelIds: ['mark:thread'],   // label は名前でも渡せる
   references: ['mem_…'],
+  supersedes: [],   // 新しいスレッド。省くと似た記憶の検出で保存が止まりやすい (スレッドは仲間の要約なので当たりやすい)
   atlasId,
 })
 ```
 - 題は `thread` の引数 (KDL の記憶は一覧の題が「KDL (n B)」になるので、スレッドの題は本文に書く)
 - 欄は `now` (今どこ) / `waiting` (待ち) / `remaining` (残り) / `note` (メモ) の骨だけ。値は自由文。同じ欄は何行書いてもよい。知らない欄も名前のまま描かれる
-- 行の `id="mem_…"` は 1 行に 1 つ、宛名だけ。その記憶が仲間 (`references`) にいれば、web は種類・題・完了を**今の状態で**出す — 題や状態を本文に写さない。id を付けた記憶は `references` にも入れる。文の無い `remaining id="mem_…"` は記憶の題で描かれる
-- 形に収まらない KDL (数・`id` 以外の属性・子を持つ欄、`thread` の外のノード) は欄ではなく木で描かれる。KDL として読めなければ保存時に行・列が返るので、直して書き直す
+- 行の `id="mem_…"` は 1 行に 1 つ、`mem_…` の宛名だけ (slug や UUID は不可)。その記憶が仲間 (`references`) にいれば、web は種類・題・完了を**今の状態で**出す — 題や状態を本文に写さない。id を付けた記憶は `references` にも入れる。文の無い `remaining id="mem_…"` は記憶の題で描かれる。web がこの id を記憶の題に描き替えるので、「id を本文に貼らない」の例外はこの属性だけ。文の中には書かない
+- 形に収まらない KDL (数・`id` 以外の属性・子を持つ欄、`id` が `mem_…` でない行、`thread` の外のノード) はスレッド全体が欄ではなく木で描かれる。KDL として読めなければ保存時に行・列が返るので、直して書き直す
 - 欄を進める: `patch_memory({ id, before, after })` (スレッドの id は変わらない)
-- 仲間を足す・外す: 今の MCP では `references` は記憶を作る時にしか張れない。新しい版を `remember({ content, contentType: 'application/vnd.kdl', kind: 'context', labelIds, references: [<残す仲間と足す仲間の全部>], supersedes: ['<今のスレッドの id>'], atlasId })` で作る (古い版は一覧から消える)
+- 仲間を足す・外す: 今の MCP では `references` は記憶を作る時にしか張れない。上と同じ呼び出しで `references` を残す仲間と足す仲間の全部にし、`supersedes: ['<今のスレッドの id>']` にして新しい版を作る。label も関係も引き継がれないので全部渡し直す。スレッドの id は変わる (古い版は一覧から消え、古い版を指す注釈やリンクはそのまま)
