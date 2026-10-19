@@ -1,4 +1,4 @@
-# recipes — 6 つの場面
+# recipes — 7 つの場面
 
 引数は tool の説明文が SSOT。ここは順番と判断だけ。
 
@@ -54,3 +54,34 @@ complete_todo({ id })
 - 引き継ぎは todo (相手の atlas か project atlas) + annotation。wire / chat は通知だけ
 - 人に頼むこと (lock / review 段の提案の受け入れ) は todo か annotation で**頼む**。代わりにやろうとしない (server が拒否する)
 - 会話の記録が要るなら `record_work_log({ content, workLogType: 'decision', sender, receiver })`
+
+## 7. スレッドを編む — Atlas をまたいで 1 つの話を束ねる
+
+スレッド = `kind: 'context'` + label `mark:thread` の記憶。仲間 = スレッドから `references` で指した記憶 (1 段)。web の `/threads` が、仲間を やること / 考え / 出来事 に分けて束ねて見せる。web は見るだけで、編むのは会話の中の agent
+
+```
+label_list()   // mark:thread が無ければ label_create({ name: 'mark:thread' })
+remember({
+  content: `thread "<題>" {
+    now "<今どこ (自由文、markdown)>" id="mem_…"
+    waiting "<何を・誰を待っているか>" id="mem_…"
+    remaining "<残り>"
+    remaining id="mem_…"
+    note """
+        欄に収まらない話 (理由・ためらい・経緯)
+        """
+}`,
+  contentType: 'application/vnd.kdl',
+  kind: 'context',
+  labelIds: ['mark:thread'],   // label は名前でも渡せる
+  references: ['mem_…'],
+  supersedes: [],   // 新しいスレッド。省くと似た記憶の検出で保存が止まりやすい (スレッドは仲間の要約なので当たりやすい)
+  atlasId,
+})
+```
+- 題は `thread` の引数 (KDL の記憶は一覧の題が「KDL (n B)」になるので、スレッドの題は本文に書く)
+- 欄は `now` (今どこ) / `waiting` (待ち) / `remaining` (残り) / `note` (メモ) の骨だけ。値は自由文。同じ欄は何行書いてもよい。知らない欄も名前のまま描かれる
+- 行の `id="mem_…"` は 1 行に 1 つ、`mem_…` の宛名だけ (slug や UUID は不可)。その記憶が仲間 (`references`) にいれば、web は種類・題・完了を**今の状態で**出す — 題や状態を本文に写さない。id を付けた記憶は `references` にも入れる。文の無い `remaining id="mem_…"` は記憶の題で描かれる。web がこの id を記憶の題に描き替えるので、「id を本文に貼らない」の例外はこの属性だけ。文の中には書かない
+- 形に収まらない KDL (数・`id` 以外の属性・子を持つ欄、`id` が `mem_…` でない行、`thread` の外のノード) はスレッド全体が欄ではなく木で描かれる。KDL として読めなければ保存時に行・列が返るので、直して書き直す
+- 欄を進める: `patch_memory({ id, before, after })` (スレッドの id は変わらない)
+- 仲間を足す・外す: 今の MCP では `references` は記憶を作る時にしか張れない。上と同じ呼び出しで `references` を残す仲間と足す仲間の全部にし、`supersedes: ['<今のスレッドの id>']` にして新しい版を作る。label も関係も引き継がれないので全部渡し直す。スレッドの id は変わる (古い版は一覧から消え、古い版を指す注釈やリンクはそのまま)

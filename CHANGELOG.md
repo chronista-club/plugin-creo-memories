@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.62.10] - 2026-10-19
+
+- recipes: 7「スレッドを編む」を足す。スレッド = `kind: 'context'` + label `mark:thread`、本文は KDL の `thread "<題>" { now / waiting / remaining / note }` (値は自由文、行に `id="mem_…"`)、仲間は `references`。仲間を後から足す・外すのは今は `supersedes` で新しい版を作る。SKILL.md の「書く」から 1 行で指す。creo-memories #1111 (`/threads`) / #1112 (KDL のスレッドを欄で描く) と対 (使い方の追加なので server → plugin の順。server は v0.90.0)
+
 ## [0.62.9] - 2026-10-09
 
 - tools-map: 本文の型に KDL (`application/vnd.kdl`) を足す (spec 31 / spec 32 段 2)。`remember` の `contentType` に書け、`search` / `read` の item の `title` は「KDL (1.2 KB)」の形。保存時の構文の検査はまだ無い。creo-memories #1058 と対 (**引数の値の追加なので server → plugin の順**に merge)

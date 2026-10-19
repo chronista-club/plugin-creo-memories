@@ -2,7 +2,7 @@
 name: creo-memories
 description: creo-memories = 外部脳。context が尽きても、session / machine / model / 人をまたいで続きができる場所。書くのは「次に拾う誰かのため」、読むのは「自分が始めた気になる前」。
 metadata:
-  version: 0.62.9
+  version: 0.62.10
   tags: memory, external-brain, collaboration, chronista
 ---
 
@@ -37,6 +37,7 @@ metadata:
 ### 書く
 - `remember({ content, kind, atlasId })`。1 行目は題。結論が先。id や生 SQL や長い log は本文に貼らない (人が web / iOS で読む)
 - **context が尽きる前に handoff を 1 本** (`kind: 'handoff'`): 次の一手 / 止まっている理由 / 見ている file / 決めたこと。きっかけは場面で違う — 長い作業の節目、compaction の前 (hook が思い出させる)、終える前。「まだ書いていない」と気づいた時が書く時
+- Atlas をまたぐ 1 つの話は **スレッド**に束ねる: `kind: 'context'` + label `mark:thread`、本文は KDL の `thread "<題>" { now / waiting / remaining / note }`、仲間は `references`。詳細: [recipes.md](reference/recipes.md) の 7
 - 既存の記憶に足すなら `annotate({ targetMemoryId, content })`。本文を書き換えるのは自分が書いた記憶の訂正だけ
 - 古い理解を新しい理解で置き換えたら `remember({ content, supersedes: ['mem_…'] })` か `supersede_memory({ id, supersededBy })`。消さない
 
