@@ -27,6 +27,7 @@ tool の説明文と引数は **MCP server の定義が SSOT** (`apps/creo-mcp-s
 | `update_memory` | 属性 (atlas / ttl / kind / metadata) や本文の全置換。lock 中は 409 |
 | `attach_or_ref` | 添付 (file) を紐付ける |
 | `link_external` | GitHub の PR / issue と対にする (`service` / `external_id` / `url`) |
+| `relate` / `unrelate` | 記憶どうしの線を後から張る / 外す (`from` → `to: [...]`、`type` は `references` (既定) / `extends` / `derived_from`)。張れるのは `from` の作者。`to` は読める記憶だけ (無い記憶と読めない記憶は同じ返り)。重複は何もしない、無い線を外すのも何もしない。注釈は `annotate`、置き換えは `supersede_memory` |
 | `record_work_log` / `search_work_logs` | agent 間・人との会話の記録と検索 (`workLogType`) |
 | `generate_story` / `generate_compass` / `create_process` | atlas の物語 / コンパス / 連鎖を生成 (再生成は上書き)。物語とコンパスは `locale` (`ja` / `en` / `ko`、省略時 en) で書く言語を決める。利用者の言語に合わせて渡す。Atlas に書き方が指定されていれば、それも使う |
 
