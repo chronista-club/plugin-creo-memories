@@ -178,6 +178,19 @@ class SyncTarget(SyncHarness):
         self.assertTrue((self.home / '.claude/projects' / self.key(repo) / 'memory/shared-note.md').exists(),
                         list((self.home / '.claude/projects').glob('*')))
 
+    def test_exported_cdpath_does_not_break_the_target(self):
+        # 本体の直下では git-common-dir が相対の `.git`。CDPATH が export されていると cd がそれを引き、
+        # 移った先を stdout に出す (写し先の名前に改行が入る。santa 2 巡目)
+        if subprocess.run(['git', '--version'], capture_output=True).returncode != 0:
+            self.skipTest('git が無い')
+        repo, _ = self._repo('proj')
+        elsewhere = self.temp / 'elsewhere'
+        elsewhere.mkdir()
+        r = self.run_sync(repo, CDPATH=f'.:{elsewhere}')
+        self.assertEqual(r.returncode, 0, r.stderr)
+        dirs = [p.name for p in (self.home / '.claude/projects').glob('*')]
+        self.assertEqual(dirs, [self.key(repo)])
+
     def test_subdirectory_of_a_repo_writes_to_the_repo_root(self):
         # 本体の checkout の subdir では git-common-dir が相対 (../.git) で返る。git 2.31 より前は
         # --path-format=absolute を知らず、flag をそのまま出していた (写し先の名前に改行が入る)

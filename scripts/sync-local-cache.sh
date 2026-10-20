@@ -67,17 +67,22 @@ key=$(api_key) || exit 0
 # Claude Code が読む memory は、git の repo なら本体の checkout の project dir のもの。worktree (VP lane) の
 # session でも同じ (2026-10-20 実測: cwd = creo-memories/.vp/lanes/webui、読む memory = -Users-…-creo-memories/memory)。
 # だから git の common dir (本体の .git) から本体の場所を出す。git でなければ cwd のまま。
-# - GIT_* は subshell の中で全部 unset する (hook の env に GIT_DIR や GIT_COMMON_DIR が残っていると、別の repo を見る)
+# - GIT_* は subshell の中で全部 unset する (hook の env に GIT_DIR や GIT_COMMON_DIR が残っていると、別の repo を見る)。
+#   列挙は env から (compgen は補完の機能を外して build した bash に無い)
 # - --path-format=absolute は使わない (git 2.31 より前は知らない flag をそのまま出し、写し先の名前に改行が入った)。
-#   本体の subdir では相対 (`../.git`) で返るので、cwd から cd して pwd -P で実パスにする
+#   本体の subdir では相対 (`../.git`)、本体の直下では `.git` で返るので、cwd から cd して pwd -P で実パスにする
+# - CDPATH は外す (export されていると `cd .git` がそれを引き、移った先を stdout に出して 2 行になる)
+# - 答えが 1 行の絶対パスで /.git で終わる時だけ使う
 project_root="$cwd"
 common=$(
-  for v in $(compgen -e | grep '^GIT_'); do unset "$v"; done
+  unset CDPATH
+  for v in $(env | sed -n 's/^\(GIT_[A-Za-z0-9_]*\)=.*/\1/p'); do unset "$v"; done
   cd "$cwd" 2>/dev/null || exit 0
   c=$(git rev-parse --git-common-dir 2>/dev/null) || exit 0
   [ "$(printf '%s\n' "$c" | wc -l)" -eq 1 ] || exit 0
   cd "$c" 2>/dev/null && pwd -P
 )
+[ "$(printf '%s\n' "$common" | wc -l)" -eq 1 ] || common=""
 case "$common" in /*/.git) project_root="${common%/.git}" ;; esac
 # project dir 名 = 場所の英数字以外を全部 `-` に (`.vp/lanes/ios` → `--vp-lanes-ios`、実測 2026-09-07)
 dir_key=$(printf '%s' "$project_root" | sed 's/[^A-Za-z0-9]/-/g')
