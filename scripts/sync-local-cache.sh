@@ -61,7 +61,19 @@ fi
 
 [ -z "$cwd" ] && cwd="$PWD"
 [ -z "$JQ" ] && { echo "creo-sync: jq が無い"; exit 0; }
-command -v curl > /dev/null 2>&1 || { echo "creo-sync: curl が無い"; exit 0; }
+# curl は PATH を順に見て、Homebrew の shim の dir を飛ばした最初のものを使う。Claude Code が hook を流す env では
+# shim の dir (…/Homebrew/shims/shared) が /usr/bin より前に来ることがあり、shim の curl は「This shim is internal」で
+# 必ず失敗する (2026-10-20、mako の環境で 2 日間 sync が止まっていた。人のログインシェルでは後ろにあるので起きない)
+pick_curl() {
+  local d IFS=:
+  for d in $PATH; do
+    [ -n "$d" ] || d=.
+    case "$d" in */Homebrew/shims|*/Homebrew/shims/*) continue ;; esac
+    [ -x "$d/curl" ] && [ ! -d "$d/curl" ] && { printf '%s' "$d/curl"; return 0; }
+  done
+  return 1
+}
+CURL=$(pick_curl) || { echo "creo-sync: curl が無い (Homebrew の shim は数えない)"; exit 0; }
 key=$(api_key) || exit 0
 
 # Claude Code が読む memory は、git の repo なら本体の checkout の project dir のもの。worktree (VP lane) の
@@ -107,11 +119,11 @@ atlas=$("$PLUGIN_ROOT/scripts/infer-atlas.sh" "$cwd" 2>/dev/null || true)
 # 全部「label_create してから」に見えていた)
 # curl の言葉は stderr に別に取る (失敗しても -w の 000 が stdout の最後に来るので、混ぜると 000 しか残らない)
 errf="$STATE_DIR/$dir_key.curl-err"
-labels=$(curl -sS -m 30 -w '\n%{http_code}' "$BASE/api/labels" -H "X-API-Key: $key" 2>"$errf")
+labels=$("$CURL" -sS -m 30 -w '\n%{http_code}' "$BASE/api/labels" -H "X-API-Key: $key" 2>"$errf")
 rc=$?
 said=$(tail -1 "$errf" 2>/dev/null); rm -f "$errf"
 if [ "$rc" -ne 0 ]; then
-  echo "creo-sync: creo に繋がらない (curl exit ${rc}、$(command -v curl): ${said})"
+  echo "creo-sync: creo に繋がらない (curl exit ${rc}、${CURL}: ${said})"
   exit 0
 fi
 code=${labels##*$'\n'}; labels=${labels%$'\n'*}
@@ -128,7 +140,7 @@ fetch_atlas() {
   # (repo 名から推定した atlas は無いことが普通。失敗にすると atlas の無い repo で毎時間「前回の写しを残す」になる)
   local a="$1" page=1 got code
   while :; do
-    got=$(curl -sS -m 30 -G -w '\n%{http_code}' "$BASE/api/memories" -H "X-API-Key: $key" \
+    got=$("$CURL" -sS -m 30 -G -w '\n%{http_code}' "$BASE/api/memories" -H "X-API-Key: $key" \
       --data-urlencode "atlasId=$a" --data-urlencode "labelIds=$label_id" \
       --data-urlencode "limit=100" --data-urlencode "page=$page") || return 1
     code=${got##*$'\n'}; got=${got%$'\n'*}

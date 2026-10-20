@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.65.2] - 2026-10-20
+
+- sync: curl は PATH を順に見て、Homebrew の shim の dir (`…/Homebrew/shims/…`) を飛ばした最初のものを使う。Claude Code が hook を流す env では shim の dir が `/usr/bin` より前に来ることがあり、shim の curl は「This shim is internal」で必ず失敗する。mako の環境で 2 日間 sync が止まっていた (0.65.1 の診断の直しで、初めて log に本当の理由が出た)。shim しか無い時は「curl が無い」
+
 ## [0.65.1] - 2026-10-20
 
 deep review (team-b、2026-10-20) の 🔴 7 件。creo-memories の todo `mem_1CgCGNYiSYbiFW2NyTJRc9`。

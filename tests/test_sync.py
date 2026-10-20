@@ -256,6 +256,45 @@ class SyncDiagnosis(SyncHarness):
         self.assertIn('Failed to connect', o)
         self.assertNotIn('が無い (label_create', o)
 
+    def test_homebrew_shim_curl_is_skipped(self):
+        # Claude Code が hook を流す env では、PATH の Homebrew の shim の dir が curl の前に来ることがあり、
+        # shim の curl は「This shim is internal」で必ず失敗する (2026-10-20、mako の環境で 2 日間 sync が止まっていた)。
+        # shim の dir を飛ばして、PATH の次の curl を使う
+        shim = self.temp / 'brew/Library/Homebrew/shims/shared'
+        shim.mkdir(parents=True)
+        (shim / 'curl').write_text('#!/bin/sh\necho "curl: This shim is internal and must be run via brew." >&2\nexit 1\n')
+        (shim / 'curl').chmod(0o755)
+        plain = self.temp / 'plain'
+        plain.mkdir()
+        env = self.env()
+        env['PATH'] = str(shim) + os.pathsep + env['PATH']
+        r = subprocess.run(['bash', str(ROOT / 'scripts/sync-local-cache.sh'), '--cwd', str(plain)],
+                           text=True, env=env, capture_output=True)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn('件を写した', r.stdout, r.stdout + r.stderr)
+        self.assertNotIn('shim', r.stdout + r.stderr)
+
+    def test_only_the_shim_curl_is_reported_as_missing(self):
+        # shim しか無ければ「curl が無い」(shim を叩いて「繋がらない」と言わない)
+        shim = self.temp / 'brew/Library/Homebrew/shims/shared'
+        shim.mkdir(parents=True)
+        (shim / 'curl').write_text('#!/bin/sh\nexit 1\n')
+        (shim / 'curl').chmod(0o755)
+        tools = self.temp / 'tools'
+        tools.mkdir()
+        for t in ('jq', 'bash', 'sh', 'git', 'sed', 'tr', 'cat', 'mkdir', 'find', 'date', 'head', 'tail', 'rm', 'mv', 'printf', 'env', 'wc', 'cmp', 'awk', 'mktemp', 'touch', 'dirname', 'basename', 'grep', 'rmdir', 'cut', 'sort', 'nohup', 'jaq'):
+            found = subprocess.run(['sh', '-c', f'command -v {t}'], capture_output=True, text=True).stdout.strip()
+            if found.startswith('/'):
+                (tools / t).symlink_to(found)
+        plain = self.temp / 'plain'
+        plain.mkdir()
+        env = self.env()
+        env['PATH'] = str(shim) + os.pathsep + str(tools)
+        r = subprocess.run([str(tools / 'bash'), str(ROOT / 'scripts/sync-local-cache.sh'), '--cwd', str(plain)],
+                           text=True, env=env, capture_output=True)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn('curl が無い', r.stdout + r.stderr)
+
     def test_missing_label_is_still_reported(self):
         self.assertIn('label cache:claude が無い', self.out('none'))
 
