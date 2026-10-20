@@ -51,7 +51,11 @@ if [ "$mode" = "background" ]; then
   fi
   [ -z "$cwd" ] && cwd="$PWD"
   mkdir -p "$STATE_DIR"
-  nohup bash "$0" --cwd "$cwd" > "$STATE_DIR/sync.log" 2>&1 < /dev/null &
+  # log は 1 枚に足していく (上書きすると、別の project の session が前の失敗を消す)。育ちすぎたら末尾だけ残す
+  log="$STATE_DIR/sync.log"
+  if [ -f "$log" ] && [ "$(wc -l < "$log")" -gt 500 ]; then tail -n 300 "$log" > "$log.tmp" && mv -f "$log.tmp" "$log"; fi
+  printf '== %s %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$cwd" >> "$log"
+  nohup bash "$0" --cwd "$cwd" >> "$log" 2>&1 < /dev/null &
   exit 0
 fi
 
@@ -60,8 +64,16 @@ fi
 command -v curl > /dev/null 2>&1 || { echo "creo-sync: curl が無い"; exit 0; }
 key=$(api_key) || exit 0
 
-# Claude Code の project dir 名 = cwd の英数字以外を全部 `-` に (`.vp/lanes/ios` → `--vp-lanes-ios`、実測 2026-09-07)
-dir_key=$(printf '%s' "$cwd" | sed 's/[^A-Za-z0-9]/-/g')
+# Claude Code が読む memory は、git の repo なら本体の checkout の project dir のもの。worktree (VP lane) の
+# session でも同じ (2026-10-20 実測: cwd = creo-memories/.vp/lanes/webui、読む memory = -Users-…-creo-memories/memory)。
+# だから git の common dir (本体の .git) から本体の場所を出す。git でなければ cwd のまま。
+# GIT_* は落とす (hook の env に GIT_DIR が残っていると、別の repo を見てしまう)
+project_root="$cwd"
+common=$(env -u GIT_DIR -u GIT_WORK_TREE -u GIT_INDEX_FILE -u GIT_PREFIX -u GIT_CONFIG_PARAMETERS \
+  git -C "$cwd" rev-parse --path-format=absolute --git-common-dir 2>/dev/null || true)
+case "$common" in */.git) project_root="${common%/.git}" ;; esac
+# project dir 名 = 場所の英数字以外を全部 `-` に (`.vp/lanes/ios` → `--vp-lanes-ios`、実測 2026-09-07)
+dir_key=$(printf '%s' "$project_root" | sed 's/[^A-Za-z0-9]/-/g')
 mem_dir="$HOME/.claude/projects/$dir_key/memory"
 stamp="$STATE_DIR/$dir_key.stamp"
 lock="$STATE_DIR/$dir_key.lock"
@@ -78,9 +90,21 @@ trap 'rmdir "$lock" 2>/dev/null' EXIT
 
 atlas=$("$PLUGIN_ROOT/scripts/infer-atlas.sh" "$cwd" 2>/dev/null || true)
 
-# label 名 → id (REST の一覧 filter は id しか受けない。無ければ「写すものが無い」= 何もしない)
-label_id=$(curl -sS -m 30 "$BASE/api/labels" -H "X-API-Key: $key" 2>/dev/null \
-  | $JQ -r --arg n "$LABEL" '.labels[]? | select((.name | ascii_downcase) == $n) | .id' 2>/dev/null | head -1)
+# label 名 → id (REST の一覧 filter は id しか受けない。無ければ「写すものが無い」= 何もしない)。
+# 繋がらない / HTTP の失敗を「label が無い」と言わない (curl が brew の shim に当たる・key の失効・502 が、
+# 全部「label_create してから」に見えていた)
+labels=$(curl -sS -m 30 -w '\n%{http_code}' "$BASE/api/labels" -H "X-API-Key: $key" 2>&1)
+rc=$?
+if [ "$rc" -ne 0 ]; then
+  echo "creo-sync: creo に繋がらない (curl exit $rc、$(command -v curl): $(printf '%s' "$labels" | tail -1))"
+  exit 0
+fi
+code=${labels##*$'\n'}; labels=${labels%$'\n'*}
+if [ "$code" != 200 ]; then
+  echo "creo-sync: labels の取得が HTTP $code ($BASE。401 なら API key を確かめる)"
+  exit 0
+fi
+label_id=$(printf '%s' "$labels" | $JQ -r --arg n "$LABEL" '.labels[]? | select((.name | ascii_downcase) == $n) | .id' 2>/dev/null | head -1)
 [ -z "$label_id" ] && { echo "creo-sync: label $LABEL が無い (label_create してから)"; exit 0; }
 
 fetch_atlas() {
@@ -163,11 +187,16 @@ while IFS= read -r line; do
     printf '%s' "$line" | $JQ -r '.content | split("\n") | .[1:] | (if .[0] == "" then .[1:] else . end) | join("\n")'
   } > "$mem_dir/.$name.md.tmp" || { echo "creo-sync: 書けなかった: $name"; rm -f "$mem_dir/.$name.md.tmp"; continue; }
   if [ -n "$stash" ]; then
-    # frontmatter を除いた本文 (空行と末尾の空白を落として) が同じなら退避しない
+    # frontmatter を除いた本文 (空行と末尾の空白を落として) が同じなら退避しない。比べるのは cmp (POSIX)。
+    # 以前は shasum の出力を比べていて、shasum が無いと両方が空 =「同じ」になり、local の本文を上書きしていた。
+    # cmp が「同じ」と言えた時 (exit 0) だけ退避しない。違う・比べられない (exit 1 / 2) は退避する
     body_of() { awk 'BEGIN{n=0} /^---$/{n++; next} n>=2 && !/^[[:space:]]*$/ {sub(/[[:space:]]+$/, ""); print}' "$1"; }
-    if [ "$(body_of "$stash" | shasum)" != "$(body_of "$mem_dir/.$name.md.tmp" | shasum)" ]; then
+    body_of "$stash" > "$mem_dir/.$name.local.cmp"
+    body_of "$mem_dir/.$name.md.tmp" > "$mem_dir/.$name.creo.cmp"
+    if ! cmp -s "$mem_dir/.$name.local.cmp" "$mem_dir/.$name.creo.cmp"; then
       mv -f "$stash" "$mem_dir/$name.local-only.md"
     fi
+    rm -f "$mem_dir/.$name.local.cmp" "$mem_dir/.$name.creo.cmp"
   fi
   mv -f "$mem_dir/.$name.md.tmp" "$mem_dir/$name.md" || { echo "creo-sync: 書けなかった: $name"; continue; }
   written+=("$name")
