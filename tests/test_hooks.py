@@ -41,5 +41,39 @@ class Hooks(unittest.TestCase):
         self.assertEqual(result.returncode,0,result.stderr)
         self.assertEqual(result.stdout,'')
 
+@unittest.skipIf(ROOT.name == 'plugin-vantage-point', 'creo-memories の hook')
+class CreoSessionHooks(unittest.TestCase):
+    def run_start(self, source):
+        with tempfile.TemporaryDirectory() as temp:
+            env = {k: v for k, v in os.environ.items() if not k.startswith('GIT_')}
+            env.pop('CLAUDE_PLUGIN_ROOT', None)
+            r = subprocess.run(['bash', str(ROOT / 'hooks/session-start.sh')],
+                               input=json.dumps({'cwd': temp, 'source': source}), text=True, env=env, capture_output=True)
+            self.assertEqual(r.returncode, 0, r.stderr)
+            return r.stdout
+
+    def test_compact_prompts_a_handoff(self):
+        # SessionStart の stdout は agent の context に入る。compaction の後は、要約を材料に handoff を書く番
+        out = self.run_start('compact')
+        self.assertIn("kind: 'handoff'", out)
+        self.assertIn('縮みました', out)
+
+    def test_other_starts_do_not_prompt_a_handoff(self):
+        for source in ('startup', 'resume', 'clear'):
+            self.assertNotIn('縮みました', self.run_start(source), source)
+
+    def test_today_brain_is_not_the_project(self):
+        # 「今日の脳」は既定の atlas の分。project の分は briefing({ atlasId }) で取る
+        out = self.run_start('startup')
+        self.assertIn('briefing({ atlasId })', out)
+        self.assertNotIn('重複検索は不要', out)
+
+    def test_no_hook_whose_output_never_reaches_the_agent(self):
+        # PreCompact の stdout は debug log、Stop の systemMessage は人にだけ (Claude Code の hooks の文書)。
+        # 「hook が思い出させる」と書いてあっても agent には届いていなかった
+        hooks = json.loads((ROOT / 'hooks/hooks.json').read_text())['hooks']
+        self.assertNotIn('PreCompact', hooks)
+        self.assertNotIn('Stop', hooks)
+
 if __name__ == '__main__':
     unittest.main()

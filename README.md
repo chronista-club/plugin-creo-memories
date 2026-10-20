@@ -6,11 +6,10 @@ Shared Claude Code / Codex plugin for **creo-memories** — the external brain. 
 
 - **MCP server** `https://mcp.creo-memories.in/mcp` (tool descriptions are the source of truth)
 - **Skill** `creo-memories` — purpose, the shape of the world (3 lineages × 16 kinds, marks, labels, lock, proposals, briefing, sender), the judgment for *what to write / where / when to read*, how to work with others, and the non-obvious traps. ≤ 120 lines. No mandates: the mechanical rules are enforced by the server
-- **Hooks** (4 events)
-  - `SessionStart` — the atlas hint for this repo (the server does not know your cwd)
-  - `PreCompact` — before the context shrinks: write the handoff
-  - `Stop` — decisions / learnings / unfinished todos go to creo
+- **Hooks** (2 events)
+  - `SessionStart` — the atlas hint for this repo (the server does not know your cwd), and the project's own briefing is `briefing({ atlasId })`. After a compaction (`source: compact`) it asks the agent to write the handoff from the summary
   - `PreToolUse(Write */memory/*.md)` — local memory is a cache; the canonical copy is `/agent/<self>`
+  - No `PreCompact` / `Stop` hooks: the way they were wired, their output never reached the agent (PreCompact stdout goes to the debug log, Stop's `systemMessage` is shown only to the person). A Stop hook can reach the agent only by holding the stop back, which would fire on every turn
 
 ## Layout
 
@@ -18,10 +17,10 @@ Shared Claude Code / Codex plugin for **creo-memories** — the external brain. 
 skills/creo-memories/
   SKILL.md                 A purpose / B world / C judgment / D with others / E traps
   reference/model.md       spec 25 summary (lineages, kinds, marks, label, lock, proposals, briefing, self & cache)
-  reference/tools-map.md   intent → tool (all 75; verified by creo-memories CI)
+  reference/tools-map.md   intent → tool (all of them; the set is checked against the server by creo-memories CI)
   reference/recipes.md     7 scenes: start / handoff / decision / incident / todo / with others / thread
   reference/agent-atlas.md /agent and /agent/<self>, local as cache
-hooks/                     hooks.json, session-start.sh, pre-compact.sh
+hooks/                     hooks.json, session-start.sh
 scripts/infer-atlas.sh     cwd / git remote → atlas slug
 scripts/sync-local-cache.sh creo → ~/.claude/projects/<p>/memory/ (label cache:claude; Claude Code の SessionStart から背景で)
 ```

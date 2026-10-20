@@ -14,26 +14,6 @@
         ]
       }
     ],
-    "PreCompact": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/pre-compact.sh\""
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "echo '{\"systemMessage\": \"creo: 終える前に — 決めたこと / 学び / 未完の todo の続きは creo へ (会話の写しは不要)。次の自分か他の agent が拾える形で。\"}'"
-          }
-        ]
-      }
-    ],
     "PreToolUse": [
       {
         "matcher": "Write",
