@@ -9,7 +9,7 @@ Shared Claude Code / Codex plugin for **creo-memories** — the external brain. 
 - **Hooks** (2 events)
   - `SessionStart` — the atlas hint for this repo (the server does not know your cwd), and the project's own briefing is `briefing({ atlasId })`. After a compaction (`source: compact`) it asks the agent to write the handoff from the summary
   - `PreToolUse(Write */memory/*.md)` — local memory is a cache; the canonical copy is `/agent/<self>`
-  - No `PreCompact` / `Stop` hooks: their output never reaches the agent (PreCompact stdout goes to the debug log, Stop's `systemMessage` is shown only to the person)
+  - No `PreCompact` / `Stop` hooks: the way they were wired, their output never reached the agent (PreCompact stdout goes to the debug log, Stop's `systemMessage` is shown only to the person). A Stop hook can reach the agent only by holding the stop back, which would fire on every turn
 
 ## Layout
 

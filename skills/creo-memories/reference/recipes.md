@@ -8,7 +8,7 @@
 2. 続きなら `read({ resource: 'todo' })` で未完を確認し、直前の handoff を `read({ resource: 'memory', filter: { kind: 'handoff', atlasId }, limit: 3 })` (新しい順。`search({ query: 'handoff' })` は意味の近い順なので、新しい handoff が出てこないことがある)
 3. 自分の癖が関係しそうなら `search({ query, atlasId: '<解決した自分の Atlas ID>' })` と `search({ query, atlasId: '<解決した /agent の ID>' })`
 
-## 2. 引き継ぐ (handoff) — context が尽きる前に (節目 / compaction の前 / 終える前)
+## 2. 引き継ぐ (handoff) — context が尽きる前に (節目 / compaction の後 / 終える前)
 
 ```
 remember({

@@ -82,7 +82,8 @@ for a in "$@"; do case "$prev" in -w) w="$a" ;; esac; prev="$a"; done
 case "$*" in
   *api/labels*)
     case "${FAKE_LABELS:-ok}" in
-      fail) echo 'curl: (7) Failed to connect' >&2; exit 7 ;;
+      # 本物の curl は失敗しても -w の %{http_code} = 000 を stdout の最後に書く
+      fail) echo 'curl: (7) Failed to connect to app.creo-memories.in port 443' >&2; [ -n "$w" ] && printf '\n000'; exit 7 ;;
       401) printf '%s' '{"error":"unauthorized"}'; [ -n "$w" ] && printf '\n401'; exit 0 ;;
       502) printf '%s' '<html>bad gateway</html>'; [ -n "$w" ] && printf '\n502'; exit 0 ;;
       none) printf '%s' '{"labels":[]}'; [ -n "$w" ] && printf '\n200'; exit 0 ;;
@@ -156,6 +157,62 @@ class SyncTarget(SyncHarness):
         self.assertTrue((main_dir / 'shared-note.md').exists(), list((self.home / '.claude/projects').glob('*')))
         self.assertFalse(lane_dir.exists())
 
+    def _repo(self, name):
+        repo = self.temp / name
+        repo.mkdir()
+        git = lambda *a: subprocess.run(['git', *a], cwd=repo, env=self.env(), check=True, capture_output=True)
+        git('init', '-q')
+        git('-c', 'user.name=t', '-c', 'user.email=t@example.com', 'commit', '-q', '--allow-empty', '-m', 'init')
+        return repo, git
+
+    def test_inherited_git_env_does_not_redirect_the_target(self):
+        # hook の env に GIT_* が残っていても (GIT_COMMON_DIR は git-common-dir の答えそのものを変える)、cwd の repo を見る
+        if subprocess.run(['git', '--version'], capture_output=True).returncode != 0:
+            self.skipTest('git が無い')
+        repo, _ = self._repo('proj')
+        other, _ = self._repo('other')
+        r = subprocess.run(['bash', str(ROOT / 'scripts/sync-local-cache.sh'), '--cwd', str(repo)], text=True,
+                           env=dict(self.env(), GIT_COMMON_DIR=str(other / '.git'), GIT_DIR=str(other / '.git')),
+                           capture_output=True)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertTrue((self.home / '.claude/projects' / self.key(repo) / 'memory/shared-note.md').exists(),
+                        list((self.home / '.claude/projects').glob('*')))
+
+    def test_subdirectory_of_a_repo_writes_to_the_repo_root(self):
+        # 本体の checkout の subdir では git-common-dir が相対 (../.git) で返る。git 2.31 より前は
+        # --path-format=absolute を知らず、flag をそのまま出していた (写し先の名前に改行が入る)
+        if subprocess.run(['git', '--version'], capture_output=True).returncode != 0:
+            self.skipTest('git が無い')
+        repo, _ = self._repo('proj')
+        sub = repo / 'apps/web'
+        sub.mkdir(parents=True)
+        r = self.run_sync(sub)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        dirs = [p.name for p in (self.home / '.claude/projects').glob('*')]
+        self.assertEqual(dirs, [self.key(repo)])
+
+    def test_git_older_than_2_31_still_finds_the_main_checkout(self):
+        # git 2.31 より前の rev-parse は知らない --path-format=absolute を 1 行目にそのまま出す
+        # (builtin/rev-parse.c の show_flag)。その形を真似た git で、lane から本体に写せること
+        real = subprocess.run(['sh', '-c', 'command -v git'], capture_output=True, text=True).stdout.strip()
+        if not real:
+            self.skipTest('git が無い')
+        repo, git = self._repo('proj')
+        lane = repo / '.vp/lanes/web'
+        git('worktree', 'add', '-q', '--detach', str(lane))
+        old = self.bin / 'git'
+        old.write_text(f'''#!/bin/sh
+for a in "$@"; do
+  case "$a" in --path-format=*) echo "$a"; set -- $(for b in "$@"; do [ "$b" = "$a" ] || printf '%s\\n' "$b"; done); break ;; esac
+done
+exec {real} "$@"
+''')
+        old.chmod(0o755)
+        r = self.run_sync(lane)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        dirs = [p.name for p in (self.home / '.claude/projects').glob('*')]
+        self.assertEqual(dirs, [self.key(repo)])
+
     def test_plain_dir_still_uses_cwd(self):
         plain = self.temp / 'plain'
         plain.mkdir()
@@ -182,6 +239,8 @@ class SyncDiagnosis(SyncHarness):
         o = self.out('fail')
         self.assertIn('繋がらない', o)
         self.assertIn(str(self.bin / 'curl'), o)
+        # 何と言ったか (DNS / TLS / timeout の見分け)。-w の 000 ではなく curl の言葉
+        self.assertIn('Failed to connect', o)
         self.assertNotIn('が無い (label_create', o)
 
     def test_missing_label_is_still_reported(self):
@@ -206,6 +265,20 @@ class SyncKeepsLocalOnly(SyncHarness):
         stashed = mem / 'shared-note.local-only.md'
         self.assertTrue(stashed.exists(), list(mem.glob('*')))
         self.assertIn('local にしか無い本文', stashed.read_text())
+
+    def test_local_file_is_stashed_when_the_bodies_cannot_be_read(self):
+        # awk が壊れていると本文が両方空になり、比較が「同じ」に戻る (shasum の時と同じ形の穴)
+        plain = self.temp / 'plain'
+        plain.mkdir()
+        mem = self.home / '.claude/projects' / self.key(plain) / 'memory'
+        mem.mkdir(parents=True)
+        (mem / 'shared-note.md').write_text('---\nname: shared-note\n---\n\nlocal にしか無い本文\n')
+        stub = self.bin / 'awk'
+        stub.write_text('#!/bin/sh\nexit 2\n')
+        stub.chmod(0o755)
+        r = self.run_sync(plain)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn('local にしか無い本文', (mem / 'shared-note.local-only.md').read_text())
 
     def test_same_body_is_not_stashed(self):
         plain = self.temp / 'plain'

@@ -45,7 +45,7 @@ class Hooks(unittest.TestCase):
 class CreoSessionHooks(unittest.TestCase):
     def run_start(self, source):
         with tempfile.TemporaryDirectory() as temp:
-            env = dict(os.environ)
+            env = {k: v for k, v in os.environ.items() if not k.startswith('GIT_')}
             env.pop('CLAUDE_PLUGIN_ROOT', None)
             r = subprocess.run(['bash', str(ROOT / 'hooks/session-start.sh')],
                                input=json.dumps({'cwd': temp, 'source': source}), text=True, env=env, capture_output=True)

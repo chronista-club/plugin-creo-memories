@@ -53,7 +53,7 @@ if [ "$mode" = "background" ]; then
   mkdir -p "$STATE_DIR"
   # log は 1 枚に足していく (上書きすると、別の project の session が前の失敗を消す)。育ちすぎたら末尾だけ残す
   log="$STATE_DIR/sync.log"
-  if [ -f "$log" ] && [ "$(wc -l < "$log")" -gt 500 ]; then tail -n 300 "$log" > "$log.tmp" && mv -f "$log.tmp" "$log"; fi
+  if [ -f "$log" ] && [ "$(wc -l < "$log")" -gt 500 ]; then tail -n 300 "$log" > "$log.$$" && mv -f "$log.$$" "$log"; fi
   printf '== %s %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$cwd" >> "$log"
   nohup bash "$0" --cwd "$cwd" >> "$log" 2>&1 < /dev/null &
   exit 0
@@ -67,11 +67,18 @@ key=$(api_key) || exit 0
 # Claude Code が読む memory は、git の repo なら本体の checkout の project dir のもの。worktree (VP lane) の
 # session でも同じ (2026-10-20 実測: cwd = creo-memories/.vp/lanes/webui、読む memory = -Users-…-creo-memories/memory)。
 # だから git の common dir (本体の .git) から本体の場所を出す。git でなければ cwd のまま。
-# GIT_* は落とす (hook の env に GIT_DIR が残っていると、別の repo を見てしまう)
+# - GIT_* は subshell の中で全部 unset する (hook の env に GIT_DIR や GIT_COMMON_DIR が残っていると、別の repo を見る)
+# - --path-format=absolute は使わない (git 2.31 より前は知らない flag をそのまま出し、写し先の名前に改行が入った)。
+#   本体の subdir では相対 (`../.git`) で返るので、cwd から cd して pwd -P で実パスにする
 project_root="$cwd"
-common=$(env -u GIT_DIR -u GIT_WORK_TREE -u GIT_INDEX_FILE -u GIT_PREFIX -u GIT_CONFIG_PARAMETERS \
-  git -C "$cwd" rev-parse --path-format=absolute --git-common-dir 2>/dev/null || true)
-case "$common" in */.git) project_root="${common%/.git}" ;; esac
+common=$(
+  for v in $(compgen -e | grep '^GIT_'); do unset "$v"; done
+  cd "$cwd" 2>/dev/null || exit 0
+  c=$(git rev-parse --git-common-dir 2>/dev/null) || exit 0
+  [ "$(printf '%s\n' "$c" | wc -l)" -eq 1 ] || exit 0
+  cd "$c" 2>/dev/null && pwd -P
+)
+case "$common" in /*/.git) project_root="${common%/.git}" ;; esac
 # project dir 名 = 場所の英数字以外を全部 `-` に (`.vp/lanes/ios` → `--vp-lanes-ios`、実測 2026-09-07)
 dir_key=$(printf '%s' "$project_root" | sed 's/[^A-Za-z0-9]/-/g')
 mem_dir="$HOME/.claude/projects/$dir_key/memory"
@@ -93,15 +100,18 @@ atlas=$("$PLUGIN_ROOT/scripts/infer-atlas.sh" "$cwd" 2>/dev/null || true)
 # label 名 → id (REST の一覧 filter は id しか受けない。無ければ「写すものが無い」= 何もしない)。
 # 繋がらない / HTTP の失敗を「label が無い」と言わない (curl が brew の shim に当たる・key の失効・502 が、
 # 全部「label_create してから」に見えていた)
-labels=$(curl -sS -m 30 -w '\n%{http_code}' "$BASE/api/labels" -H "X-API-Key: $key" 2>&1)
+# curl の言葉は stderr に別に取る (失敗しても -w の 000 が stdout の最後に来るので、混ぜると 000 しか残らない)
+errf="$STATE_DIR/$dir_key.curl-err"
+labels=$(curl -sS -m 30 -w '\n%{http_code}' "$BASE/api/labels" -H "X-API-Key: $key" 2>"$errf")
 rc=$?
+said=$(tail -1 "$errf" 2>/dev/null); rm -f "$errf"
 if [ "$rc" -ne 0 ]; then
-  echo "creo-sync: creo に繋がらない (curl exit $rc、$(command -v curl): $(printf '%s' "$labels" | tail -1))"
+  echo "creo-sync: creo に繋がらない (curl exit ${rc}、$(command -v curl): ${said})"
   exit 0
 fi
 code=${labels##*$'\n'}; labels=${labels%$'\n'*}
 if [ "$code" != 200 ]; then
-  echo "creo-sync: labels の取得が HTTP $code ($BASE。401 なら API key を確かめる)"
+  echo "creo-sync: labels の取得が HTTP ${code} (${BASE}。401 なら API key を確かめる)"
   exit 0
 fi
 label_id=$(printf '%s' "$labels" | $JQ -r --arg n "$LABEL" '.labels[]? | select((.name | ascii_downcase) == $n) | .id' 2>/dev/null | head -1)
@@ -189,11 +199,13 @@ while IFS= read -r line; do
   if [ -n "$stash" ]; then
     # frontmatter を除いた本文 (空行と末尾の空白を落として) が同じなら退避しない。比べるのは cmp (POSIX)。
     # 以前は shasum の出力を比べていて、shasum が無いと両方が空 =「同じ」になり、local の本文を上書きしていた。
-    # cmp が「同じ」と言えた時 (exit 0) だけ退避しない。違う・比べられない (exit 1 / 2) は退避する
+    # 両方の本文が読めて (awk が成功して)、cmp が「同じ」と言えた時 (exit 0) だけ退避しない。それ以外は退避する
     body_of() { awk 'BEGIN{n=0} /^---$/{n++; next} n>=2 && !/^[[:space:]]*$/ {sub(/[[:space:]]+$/, ""); print}' "$1"; }
-    body_of "$stash" > "$mem_dir/.$name.local.cmp"
-    body_of "$mem_dir/.$name.md.tmp" > "$mem_dir/.$name.creo.cmp"
-    if ! cmp -s "$mem_dir/.$name.local.cmp" "$mem_dir/.$name.creo.cmp"; then
+    if body_of "$stash" > "$mem_dir/.$name.local.cmp" \
+      && body_of "$mem_dir/.$name.md.tmp" > "$mem_dir/.$name.creo.cmp" \
+      && cmp -s "$mem_dir/.$name.local.cmp" "$mem_dir/.$name.creo.cmp"; then
+      :
+    else
       mv -f "$stash" "$mem_dir/$name.local-only.md"
     fi
     rm -f "$mem_dir/.$name.local.cmp" "$mem_dir/.$name.creo.cmp"

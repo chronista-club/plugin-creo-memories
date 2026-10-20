@@ -13,9 +13,10 @@ deep review (team-b、2026-10-20) の 🔴 7 件。creo-memories の todo `mem_1
 - hooks: 「今日の脳」は既定の atlas の分で project の分ではない。session-start の「届いていれば検索は不要」を「project の続きは `briefing({ atlasId })` と `read({ resource: 'todo' })`」に (SKILL.md / recipes 1 も)
 - recipes 1: 直前の handoff は `read({ resource: 'memory', filter: { kind: 'handoff', atlasId }, limit: 3 })` (新しい順)。`search({ query: 'handoff' })` は意味の近い順で、新しい handoff が出てこなかった
 - recipes 5 / tools-map: `complete_with_context` の `url` は `service` と一緒の時だけ残る (`service` が無いと server が黙って捨てる)
-- sync: 写し先を本体の checkout の project dir に (Claude Code は worktree / VP lane の session でも本体の memory を読む。lane では誰も読まない dir に写していた)。git の common dir から出す
-- sync: 繋がらない (curl の失敗。brew の shim など) / HTTP の失敗 (401 / 502) を「label cache:claude が無い」と言わない。どの curl が何と言ったか、status を出す。背景の同期の log を上書きせず足していく
-- sync: shasum が無いと本文の比較が空どうしで「同じ」になり、local の本文を退避せずに上書きしていた。cmp で比べ、「同じ」と言えた時だけ退避しない
+- sync: 写し先を本体の checkout の project dir に (Claude Code は worktree / VP lane / subdir の session でも本体の memory を読む。lane では誰も読まない dir に写していた)。git の common dir から出す。`GIT_*` は全部落とし (残った `GIT_COMMON_DIR` は答えを変える)、`--path-format=absolute` は使わない (git 2.31 より前は flag をそのまま出し、写し先の名前に改行が入る)
+- sync: 繋がらない (curl の失敗。brew の shim など) / HTTP の失敗 (401 / 502) を「label cache:claude が無い」と言わない。どの curl が何と言ったか (curl の stderr。失敗でも stdout の最後に `-w` の `000` が来るので混ぜない)、status を出す。背景の同期の log を上書きせず足していく
+- sync: shasum が無いと本文の比較が空どうしで「同じ」になり、local の本文を退避せずに上書きしていた。cmp で比べ、両方の本文が読めて「同じ」と言えた時だけ退避しない
+- scripts: macOS の `/bin/bash` 3.2 は `$rc、` の全角のバイトを変数名の続きとして読み、`set -u` で止まる。`${rc}、` と書き、`.sh` 全部をテストで見る
 - README: tool の数 (75) を外す (契約テストが server と過不足なしを見ている。数は書くと腐る)
 
 ## [0.65.0] - 2026-10-20
