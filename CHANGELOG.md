@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.66.0] - 2026-10-21
 
-- tools-map: `diagnose` / `search_logs` を外す (`system_health` は残す)。2 つは全利用者のログ (user ID、本文の断片、例外の文面) を誰にでも返していたので、server から tool ごと消す (mako 裁定 2026-10-21、creo-memories の todo `mem_1CgE5FPUMQ8HcSEQcWmYvE`)。**tool の撤去は plugin → server の順** — server から先に消すと、plugin の main が消えた名前を案内して契約テストが落ちる。creo-memories の対 PR は #SERVER_PR
+- tools-map: `diagnose` / `search_logs` を外す (`system_health` は残す)。2 つは全利用者のログ (user ID、本文の断片、例外の文面) を誰にでも返していたので、server から tool ごと消す (mako 裁定 2026-10-21、creo-memories の todo `mem_1CgE5FPUMQ8HcSEQcWmYvE`)。**tool の撤去は plugin → server の順** — server から先に消すと、plugin の main が消えた名前を案内して契約テストが落ちる。creo-memories の対 PR は chronista-club/creo-memories#1130
 
 ## [0.65.2] - 2026-10-20
 
