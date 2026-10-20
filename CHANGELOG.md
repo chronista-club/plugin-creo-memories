@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.64.1] - 2026-10-20
+
+- tools-map / recipes: 記憶の版。`append_memory` / `patch_memory` / `update_memory` の本文の書き換えは前の本文を版に残し、`note` で理由を一言添えられる。`get_memory` の `expand` に `versions` (鮮度を読む時に)。recipes 7 の「欄を進める」に `note`。creo-memories #1120 と対 (**引数の追加なので server → plugin の順**)
+
 ## [0.64.0] - 2026-10-20
 
 - tools-map: `update_memory` の `kind` (直接変えてよい、null で未整理に戻す。mako 裁定 2026-10-19) と `displayName` (題、作者だけ)、`update_todo` の `priority` / `dueAt` を null で外す、`update_todo` の `status` の語彙 (`pending` / `in_progress` / `completed`)。creo-memories #1117 と対 (**引数の追加なので server → plugin の順**)
