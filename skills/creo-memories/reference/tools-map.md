@@ -70,4 +70,4 @@ tool の説明文と引数は **MCP server の定義が SSOT** (`apps/creo-mcp-s
 |---|---|
 | `get_session` / `end_session` | session の情報 / 明示的に終える (期限切れの掃除) |
 | `get_status` / `get_user` / `generate_api_key` | server / 自分 / API key |
-| `system_health` / `diagnose` / `search_logs` | server の健康と log (何かおかしい時) |
+| `system_health` | server の健康 (何かおかしい時) |
