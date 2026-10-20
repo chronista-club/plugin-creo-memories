@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.65.1] - 2026-10-20
+
+deep review (team-b、2026-10-20) の 🔴 7 件。creo-memories の todo `mem_1CgCGNYiSYbiFW2NyTJRc9`。
+
+- hooks: handoff の促しを **SessionStart の `compact`** に移し、`PreCompact` と `Stop` を外す。PreCompact の stdout は debug log、Stop の `systemMessage` は人にだけ見え、どちらも agent に届いていなかった (Claude Code の hooks の文書)。compaction の後に、要約を材料に handoff を書く。SKILL.md / recipes 2 / README の「hook が思い出させる」を事実に
+- hooks: 「今日の脳」は既定の atlas の分で project の分ではない。session-start の「届いていれば検索は不要」を「project の続きは `briefing({ atlasId })` と `read({ resource: 'todo' })`」に (SKILL.md / recipes 1 も)
+- recipes 1: 直前の handoff は `read({ resource: 'memory', filter: { kind: 'handoff', atlasId }, limit: 3 })` (新しい順)。`search({ query: 'handoff' })` は意味の近い順で、新しい handoff が出てこなかった
+- recipes 5 / tools-map: `complete_with_context` の `url` は `service` と一緒の時だけ残る (`service` が無いと server が黙って捨てる)
+- sync: 写し先を本体の checkout の project dir に (Claude Code は worktree / VP lane の session でも本体の memory を読む。lane では誰も読まない dir に写していた)。git の common dir から出す
+- sync: 繋がらない (curl の失敗。brew の shim など) / HTTP の失敗 (401 / 502) を「label cache:claude が無い」と言わない。どの curl が何と言ったか、status を出す。背景の同期の log を上書きせず足していく
+- sync: shasum が無いと本文の比較が空どうしで「同じ」になり、local の本文を退避せずに上書きしていた。cmp で比べ、「同じ」と言えた時だけ退避しない
+- README: tool の数 (75) を外す (契約テストが server と過不足なしを見ている。数は書くと腐る)
+
 ## [0.65.0] - 2026-10-20
 
 - tools-map: `forget_version` を足す (記憶の版を 1 つ消す。作者だけ、lock 中は不可、`confirm: true`。本文から消した秘密が版に残った時に)。creo-memories #1121 と対。**tool の追加は server → live deploy → plugin の順** (mako 裁定 2026-10-20、server は v0.94.0 で live)。この PR の merge 後に server の `AWAITING_PLUGIN` から外す

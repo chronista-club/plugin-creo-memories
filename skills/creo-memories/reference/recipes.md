@@ -4,8 +4,8 @@
 
 ## 1. session を始める
 
-1. instructions の「今日の脳」を読む (自動)。hook が出す atlas の手がかりを見る
-2. 続きなら `read({ resource: 'todo' })` で未完を確認し、直前の handoff を `search({ query: 'handoff', kind: 'handoff', atlasId })`
+1. instructions の「今日の脳」を読む (自動。既定の atlas の分)。hook が出す atlas の手がかりから project の Atlas ID を解決し、`briefing({ atlasId })`
+2. 続きなら `read({ resource: 'todo' })` で未完を確認し、直前の handoff を `read({ resource: 'memory', filter: { kind: 'handoff', atlasId }, limit: 3 })` (新しい順。`search({ query: 'handoff' })` は意味の近い順なので、新しい handoff が出てこないことがある)
 3. 自分の癖が関係しそうなら `search({ query, atlasId: '<解決した自分の Atlas ID>' })` と `search({ query, atlasId: '<解決した /agent の ID>' })`
 
 ## 2. 引き継ぐ (handoff) — context が尽きる前に (節目 / compaction の前 / 終える前)
@@ -18,7 +18,7 @@ remember({
 })
 ```
 - 関連する todo があれば `annotate({ targetMemoryId: todoId, content: '進捗: …' })` で todo 側にも
-- compaction の前 (PreCompact hook) と Stop の時に思い出す
+- compaction の後に SessionStart の hook が促す (縮む前の hook の声は agent に届かないので、要約を材料に後から書く)。前の handoff があれば `supersedes: ['mem_…']` で置き換える
 
 ## 3. 決めた (decision)
 
@@ -45,7 +45,7 @@ create_todo({ content: '# <やること>\n…', priority: 'high', atlasId })
 list_todos({ atlasId })
 complete_todo({ id })
 ```
-- 進捗は todo に `annotate`。完了と結果と PR を 1 手なら `complete_with_context({ memory_id, result, url })`
+- 進捗は todo に `annotate`。完了と結果と PR を 1 手なら `complete_with_context({ memory_id, result, url, service: 'github' })` (`url` は `service` と一緒の時だけ残る。`service` が無いと黙って捨てられる)
 - 種類が todo でない記憶に priority は付かない (作る時は server が捨てて warn、`update_todo` では ValidationError)
 - 優先度・期限を外す: `update_todo({ id, priority: null, dueAt: null })`。完了を外す: `update_todo({ id, status: 'pending' })`
 

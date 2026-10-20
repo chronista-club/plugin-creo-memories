@@ -37,7 +37,7 @@ tool の説明文と引数は **MCP server の定義が SSOT** (`apps/creo-mcp-s
 |---|---|
 | `create_todo` / `update_todo` / `complete_todo` / `delete_todo` | やること の CRUD。title は無い (content の 1 行目が題)。`priority` / `dueAt` (`update_todo` では null で外す)。`update_todo` の `status` は `pending` / `in_progress` / `completed` (記憶の `active` / `done` とは別の語。完了を外す = `status: 'pending'`) |
 | `list_todos` | 未完を priority 順に。`groupBy` / `labelIds` |
-| `complete_with_context` | 完了 + 結果 + 外部 link を 1 手で |
+| `complete_with_context` | 完了 + 結果 + 外部 link を 1 手で (`url` は `service` と一緒の時だけ残る。`service` が無いと黙って捨てられる) |
 
 ## 整える — 種類・置換・label・提案
 
