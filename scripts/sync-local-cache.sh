@@ -51,17 +51,53 @@ if [ "$mode" = "background" ]; then
   fi
   [ -z "$cwd" ] && cwd="$PWD"
   mkdir -p "$STATE_DIR"
-  nohup bash "$0" --cwd "$cwd" > "$STATE_DIR/sync.log" 2>&1 < /dev/null &
+  # log は 1 枚に足していく (上書きすると、別の project の session が前の失敗を消す)。育ちすぎたら末尾だけ残す
+  log="$STATE_DIR/sync.log"
+  if [ -f "$log" ] && [ "$(wc -l < "$log")" -gt 500 ]; then tail -n 300 "$log" > "$log.$$" && mv -f "$log.$$" "$log"; fi
+  printf '== %s %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$cwd" >> "$log"
+  nohup bash "$0" --cwd "$cwd" >> "$log" 2>&1 < /dev/null &
   exit 0
 fi
 
 [ -z "$cwd" ] && cwd="$PWD"
 [ -z "$JQ" ] && { echo "creo-sync: jq が無い"; exit 0; }
-command -v curl > /dev/null 2>&1 || { echo "creo-sync: curl が無い"; exit 0; }
+# curl は PATH を順に見て、Homebrew の shim の dir を飛ばした最初のものを使う。Claude Code が hook を流す env では
+# shim の dir (…/Homebrew/shims/shared) が /usr/bin より前に来ることがあり、shim の curl は「This shim is internal」で
+# 必ず失敗する (2026-10-20、mako の環境で 2 日間 sync が止まっていた。人のログインシェルでは後ろにあるので起きない)
+pick_curl() {
+  local d IFS=:
+  for d in $PATH; do
+    [ -n "$d" ] || d=.
+    case "$d" in */Homebrew/shims|*/Homebrew/shims/*) continue ;; esac
+    [ -x "$d/curl" ] && [ ! -d "$d/curl" ] && { printf '%s' "$d/curl"; return 0; }
+  done
+  return 1
+}
+CURL=$(pick_curl) || { echo "creo-sync: curl が無い (Homebrew の shim は数えない)"; exit 0; }
 key=$(api_key) || exit 0
 
-# Claude Code の project dir 名 = cwd の英数字以外を全部 `-` に (`.vp/lanes/ios` → `--vp-lanes-ios`、実測 2026-09-07)
-dir_key=$(printf '%s' "$cwd" | sed 's/[^A-Za-z0-9]/-/g')
+# Claude Code が読む memory は、git の repo なら本体の checkout の project dir のもの。worktree (VP lane) の
+# session でも同じ (2026-10-20 実測: cwd = creo-memories/.vp/lanes/webui、読む memory = -Users-…-creo-memories/memory)。
+# だから git の common dir (本体の .git) から本体の場所を出す。git でなければ cwd のまま。
+# - GIT_* は subshell の中で全部 unset する (hook の env に GIT_DIR や GIT_COMMON_DIR が残っていると、別の repo を見る)。
+#   列挙は env から (compgen は補完の機能を外して build した bash に無い)
+# - --path-format=absolute は使わない (git 2.31 より前は知らない flag をそのまま出し、写し先の名前に改行が入った)。
+#   本体の subdir では相対 (`../.git`)、本体の直下では `.git` で返るので、cwd から cd して pwd -P で実パスにする
+# - CDPATH は外す (export されていると `cd .git` がそれを引き、移った先を stdout に出して 2 行になる)
+# - 答えが 1 行の絶対パスで /.git で終わる時だけ使う
+project_root="$cwd"
+common=$(
+  unset CDPATH
+  for v in $(env | sed -n 's/^\(GIT_[A-Za-z0-9_]*\)=.*/\1/p'); do unset "$v"; done
+  cd "$cwd" 2>/dev/null || exit 0
+  c=$(git rev-parse --git-common-dir 2>/dev/null) || exit 0
+  [ "$(printf '%s\n' "$c" | wc -l)" -eq 1 ] || exit 0
+  cd "$c" 2>/dev/null && pwd -P
+)
+[ "$(printf '%s\n' "$common" | wc -l)" -eq 1 ] || common=""
+case "$common" in /*/.git) project_root="${common%/.git}" ;; esac
+# project dir 名 = 場所の英数字以外を全部 `-` に (`.vp/lanes/ios` → `--vp-lanes-ios`、実測 2026-09-07)
+dir_key=$(printf '%s' "$project_root" | sed 's/[^A-Za-z0-9]/-/g')
 mem_dir="$HOME/.claude/projects/$dir_key/memory"
 stamp="$STATE_DIR/$dir_key.stamp"
 lock="$STATE_DIR/$dir_key.lock"
@@ -78,9 +114,24 @@ trap 'rmdir "$lock" 2>/dev/null' EXIT
 
 atlas=$("$PLUGIN_ROOT/scripts/infer-atlas.sh" "$cwd" 2>/dev/null || true)
 
-# label 名 → id (REST の一覧 filter は id しか受けない。無ければ「写すものが無い」= 何もしない)
-label_id=$(curl -sS -m 30 "$BASE/api/labels" -H "X-API-Key: $key" 2>/dev/null \
-  | $JQ -r --arg n "$LABEL" '.labels[]? | select((.name | ascii_downcase) == $n) | .id' 2>/dev/null | head -1)
+# label 名 → id (REST の一覧 filter は id しか受けない。無ければ「写すものが無い」= 何もしない)。
+# 繋がらない / HTTP の失敗を「label が無い」と言わない (curl が brew の shim に当たる・key の失効・502 が、
+# 全部「label_create してから」に見えていた)
+# curl の言葉は stderr に別に取る (失敗しても -w の 000 が stdout の最後に来るので、混ぜると 000 しか残らない)
+errf="$STATE_DIR/$dir_key.curl-err"
+labels=$("$CURL" -sS -m 30 -w '\n%{http_code}' "$BASE/api/labels" -H "X-API-Key: $key" 2>"$errf")
+rc=$?
+said=$(tail -1 "$errf" 2>/dev/null); rm -f "$errf"
+if [ "$rc" -ne 0 ]; then
+  echo "creo-sync: creo に繋がらない (curl exit ${rc}、${CURL}: ${said})"
+  exit 0
+fi
+code=${labels##*$'\n'}; labels=${labels%$'\n'*}
+if [ "$code" != 200 ]; then
+  echo "creo-sync: labels の取得が HTTP ${code} (${BASE}。401 なら API key を確かめる)"
+  exit 0
+fi
+label_id=$(printf '%s' "$labels" | $JQ -r --arg n "$LABEL" '.labels[]? | select((.name | ascii_downcase) == $n) | .id' 2>/dev/null | head -1)
 [ -z "$label_id" ] && { echo "creo-sync: label $LABEL が無い (label_create してから)"; exit 0; }
 
 fetch_atlas() {
@@ -89,7 +140,7 @@ fetch_atlas() {
   # (repo 名から推定した atlas は無いことが普通。失敗にすると atlas の無い repo で毎時間「前回の写しを残す」になる)
   local a="$1" page=1 got code
   while :; do
-    got=$(curl -sS -m 30 -G -w '\n%{http_code}' "$BASE/api/memories" -H "X-API-Key: $key" \
+    got=$("$CURL" -sS -m 30 -G -w '\n%{http_code}' "$BASE/api/memories" -H "X-API-Key: $key" \
       --data-urlencode "atlasId=$a" --data-urlencode "labelIds=$label_id" \
       --data-urlencode "limit=100" --data-urlencode "page=$page") || return 1
     code=${got##*$'\n'}; got=${got%$'\n'*}
@@ -163,11 +214,18 @@ while IFS= read -r line; do
     printf '%s' "$line" | $JQ -r '.content | split("\n") | .[1:] | (if .[0] == "" then .[1:] else . end) | join("\n")'
   } > "$mem_dir/.$name.md.tmp" || { echo "creo-sync: 書けなかった: $name"; rm -f "$mem_dir/.$name.md.tmp"; continue; }
   if [ -n "$stash" ]; then
-    # frontmatter を除いた本文 (空行と末尾の空白を落として) が同じなら退避しない
+    # frontmatter を除いた本文 (空行と末尾の空白を落として) が同じなら退避しない。比べるのは cmp (POSIX)。
+    # 以前は shasum の出力を比べていて、shasum が無いと両方が空 =「同じ」になり、local の本文を上書きしていた。
+    # 両方の本文が読めて (awk が成功して)、cmp が「同じ」と言えた時 (exit 0) だけ退避しない。それ以外は退避する
     body_of() { awk 'BEGIN{n=0} /^---$/{n++; next} n>=2 && !/^[[:space:]]*$/ {sub(/[[:space:]]+$/, ""); print}' "$1"; }
-    if [ "$(body_of "$stash" | shasum)" != "$(body_of "$mem_dir/.$name.md.tmp" | shasum)" ]; then
+    if body_of "$stash" > "$mem_dir/.$name.local.cmp" \
+      && body_of "$mem_dir/.$name.md.tmp" > "$mem_dir/.$name.creo.cmp" \
+      && cmp -s "$mem_dir/.$name.local.cmp" "$mem_dir/.$name.creo.cmp"; then
+      :
+    else
       mv -f "$stash" "$mem_dir/$name.local-only.md"
     fi
+    rm -f "$mem_dir/.$name.local.cmp" "$mem_dir/.$name.creo.cmp"
   fi
   mv -f "$mem_dir/.$name.md.tmp" "$mem_dir/$name.md" || { echo "creo-sync: 書けなかった: $name"; continue; }
   written+=("$name")

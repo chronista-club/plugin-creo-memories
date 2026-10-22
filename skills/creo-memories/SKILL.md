@@ -2,7 +2,7 @@
 name: creo-memories
 description: creo-memories = 外部脳。context が尽きても、session / machine / model / 人をまたいで続きができる場所。書くのは「次に拾う誰かのため」、読むのは「自分が始めた気になる前」。
 metadata:
-  version: 0.62.9
+  version: 0.66.0
   tags: memory, external-brain, collaboration, chronista
 ---
 
@@ -19,7 +19,7 @@ metadata:
 **creo はその全員が同じものを読む外部脳**であり、記録 (todo / spec / 決定 / 引き継ぎ) の SSOT でもある。
 
 - **書く**のは「次に拾う誰かのため」。決めた / 学んだ / 壊れた / 渡す / 後で自分が探す、のどれかなら書く。会話の写しは書かない
-- **読む**のは「自分が始めた気になる前」。session 開始の「今日の脳」が実際に届いていれば利用する。過去の決定を前提にする前に `search`
+- **読む**のは「自分が始めた気になる前」。session 開始の「今日の脳」は既定の atlas の分。project の続きは `briefing({ atlasId })`。過去の決定を前提にする前に `search`
 - 機械的な規則 (lock、行為者、提案の門、種類の列挙、label の上限) は **server が守る**。ここに「必ず」は無い。判断はあなたがする
 
 ## B. 世界の形 (詳細: [model.md](reference/model.md))
@@ -36,7 +36,8 @@ metadata:
 
 ### 書く
 - `remember({ content, kind, atlasId })`。1 行目は題。結論が先。id や生 SQL や長い log は本文に貼らない (人が web / iOS で読む)
-- **context が尽きる前に handoff を 1 本** (`kind: 'handoff'`): 次の一手 / 止まっている理由 / 見ている file / 決めたこと。きっかけは場面で違う — 長い作業の節目、compaction の前 (hook が思い出させる)、終える前。「まだ書いていない」と気づいた時が書く時
+- **context が尽きる前に handoff を 1 本** (`kind: 'handoff'`): 次の一手 / 止まっている理由 / 見ている file / 決めたこと。きっかけは場面で違う — 長い作業の節目、compaction の後 (SessionStart の hook が促す。要約を材料に書く)、終える前。「まだ書いていない」と気づいた時が書く時
+- Atlas をまたぐ 1 つの話は **スレッド**に束ねる: `kind: 'context'` + label `mark:thread`、本文は KDL の `thread "<題>" { now / waiting / remaining / note }`、仲間は `references`。詳細: [recipes.md](reference/recipes.md) の 7
 - 既存の記憶に足すなら `annotate({ targetMemoryId, content })`。本文を書き換えるのは自分が書いた記憶の訂正だけ
 - 古い理解を新しい理解で置き換えたら `remember({ content, supersedes: ['mem_…'] })` か `supersede_memory({ id, supersededBy })`。消さない
 
@@ -57,14 +58,14 @@ metadata:
 - mako 個人の情報や一回性の感想は書かない
 
 ### 読む
-- 「今日の脳」(やること / 考え / 出来事 / 提案 / lock 中) が instructions に届いていれば利用する。途中で `briefing({ atlasId })`
+- 「今日の脳」(やること / 考え / 出来事 / 提案 / lock 中) は instructions に届く既定の atlas の分。project の分は `briefing({ atlasId })`
 - 前提にする前に `search({ query, atlasId })`。`atlasId` は既定でその atlas だけ。子 atlas も一緒に引くなら `search({ query, atlasId, includeDescendants: true })` (親 + read できる子孫。`/agent` を親にすれば `/agent/<自分>` も入る)
 - todo を始める前に `read({ resource: 'todo' })`。終えたら `complete_todo({ id })`
 
 ### 整える (提案する)
 - 種類が違う / label を足したい / 2 つが同じ / 矛盾している → `propose({ kind, target, change, reason })`。判断は人
-- label は先に `label_list()` で既存を見て、合うものを `label_attach({ memoryId, labelIds })`。無ければ文法の中で `label_create({ name })` (既存の family に寄せる。family の例: `repo:` / `priority:` / `size:` / `phase:` / `mark:` / `area:`)。似た label が並んだら `propose({ kind: 'label_merge' })`
-- 要らない記憶は `forget` より archive や supersede。lock 中は 409 — unlock は人に頼む
+- label は先に `label_list()` で既存を見て、合うものを `label_attach({ memoryId, labelIds })` (`labelIds` は id でも名前でも)。無ければ文法の中で `label_create({ name })` (既存の family に寄せる。family の例: `repo:` / `priority:` / `size:` / `phase:` / `mark:` / `area:`)。似た label が並んだら人に頼む (`propose({ kind: 'label_merge' })` は受け入れても今は記録だけで、統合は適用されない)
+- 要らない記憶は `forget` より supersede (archive の書き口はまだ無い)。lock 中は 409 — unlock は人に頼む
 
 ### 人だけができること
 lock と unlock / review 段の提案の受け入れ。agent は頼む・提案する。

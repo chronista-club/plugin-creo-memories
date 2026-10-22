@@ -31,6 +31,15 @@ class Distribution(unittest.TestCase):
             self.assertLessEqual(set(data),{'name','description','license','metadata','allowed-tools'})
             self.assertTrue(all(isinstance(v,str) for v in data['metadata'].values()))
 
+    def test_shell_variables_are_not_followed_by_non_ascii(self):
+        # macOS の /bin/bash 3.2 は UTF-8 の locale で、`$rc、` の「、」のバイトを変数名の続きとして読む。
+        # set -u の script はそこで unbound variable になって止まる (bash 5 と CI の ubuntu では通るので気づけない)。
+        # `${rc}、` と書く
+        for path in sorted(ROOT.rglob('*.sh')):
+            for n, line in enumerate(path.read_text().splitlines(), 1):
+                if line.lstrip().startswith('#'): continue
+                self.assertIsNone(re.search(r'\$[A-Za-z_][A-Za-z0-9_]*[^\x00-\x7f]', line), f'{path}:{n}: {line.strip()}')
+
     def test_local_references_and_hook_scripts(self):
         for path in [ROOT/'README.md',*(ROOT/'skills').rglob('*.md'),*(ROOT/'commands').glob('*.md'),*(ROOT/'docs').rglob('*.md')]:
             for target in re.findall(r'\]\(([^)]+)\)',path.read_text()):
