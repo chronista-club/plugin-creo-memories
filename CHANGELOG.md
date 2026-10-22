@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.66.1] - 2026-10-22
+
+- skill: 新しい記憶・注釈・要約・引き継ぎを、根拠と意味を保って推敲する指針を追加。数値・条件・否定・確かさ・引用を保ち、実装・検証・公開を区別する。保存済みの記憶の一括更新は対象外。
+
 ## [0.66.0] - 2026-10-21
 
 - tools-map: `diagnose` / `search_logs` を外す (`system_health` は残す)。2 つは全利用者のログ (user ID、本文の断片、例外の文面) を誰にでも返していたので、server から tool ごと消す (mako 裁定 2026-10-21、creo-memories の todo `mem_1CgE5FPUMQ8HcSEQcWmYvE`)。**tool の撤去は plugin → server の順** — server から先に消すと、plugin の main が消えた名前を案内して契約テストが落ちる。creo-memories の対 PR は chronista-club/creo-memories#1130
