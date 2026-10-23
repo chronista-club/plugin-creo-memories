@@ -101,4 +101,4 @@ proposal_reject({ id })   // 「違う」と言われたら。理由は古い記
 ```
 - 読み上げは session の始め (「今日の脳」の「提案 N 件」が合図)。GO の無い提案は次の session に持ち越す (期限 30 日)
 - 新旧の判断は人の仕事。agent は reason (なぜ退役なのか) を示し、迷う組は古い記憶を `get_memory` で開いて見せる
-- 退役の提案を agent が自分で作る必要は無い (server が積む)。手で見つけた古い記憶は、今までどおり新しい記憶に `supersedes` を付けるか `supersede_memory` で
+- 退役の提案は agent は作れない (`change.retire` を付けた `propose` は server が拒む。積むのは server の規則 `creo` だけ)。手で見つけた古い記憶は、今までどおり新しい記憶に `supersedes` を付けるか `supersede_memory` で
