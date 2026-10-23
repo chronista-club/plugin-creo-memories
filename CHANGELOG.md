@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.67.0] - 2026-10-23
+
+- skill / recipes: 退役の提案の作法 (recipes 8)。server が積む `duplicate` / `contradiction` (`change.retire`) の提案は session の始めに読み上げ、**人の GO があった分だけ** `proposal_accept`。段は report で agent が押せるが、押すのは人が決めてから。tool の追加・引数の変更は無い。creo-memories の対 PR は chronista-club/creo-memories#1148 (design doc 52)。**plugin の merge は server の live deploy の後** (`CREO_RETIRE_ON_SAVE` / `CREO_CONSOLIDATION_ENABLED` を on にする時に合わせる)
+
 ## [0.66.1] - 2026-10-22
 
 - skill: 新しい記憶・注釈・要約・引き継ぎを、根拠と意味を保って推敲する指針を追加。数値・条件・否定・確かさ・引用を保ち、実装・検証・公開を区別する。保存済みの記憶の一括更新は対象外。
