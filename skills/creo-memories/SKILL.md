@@ -87,6 +87,7 @@ lock と unlock / review 段の提案の受け入れ / 退役の提案 (report �
 - `remember` の `labelIds` に無い label を渡すとエラー (先に `label_create`)。label 名の `/` は atlas 専用で使わない、大小は同じ扱い (`Area:MCP` = `area:mcp`)
 - `update_memory` / `forget` / `supersede` は lock 中に 409。`generate_story` / `generate_compass` の再生成は lock を見ずに上書き
 - `search({ atlasId })` は既定で子 atlas を含まない。含めるなら `includeDescendants: true` (読めない子は黙って落ちる。`scope: 'all'` では無意味)
+- `search({ query })` の並びは `rankScore` (類似度 + 系統の段)。同じくらい近いなら、いま有効な考え (guide / decision) が出来事 (handoff / log / 注釈) より上に来る。**完了した todo は既定で出ない** — 「前にやった作業」を探すなら `includeCompleted: true` か `lineage: "event"`。`score` は類似度のままなので、閾値の感覚は変わらない
 
 recipes: [recipes.md](reference/recipes.md) / 地図: [tools-map.md](reference/tools-map.md)
 
