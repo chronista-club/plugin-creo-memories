@@ -7,8 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.67.0] - 2026-10-24
 
-- skill / tools-map: 検索の順位 (creo-memories design doc 51)。`search` の query 検索は `rankScore` 順 (類似度 + 系統の段 = 同じ帯なら 考え > 未完のやること > 出来事、出来事は新しいほど上、`hot_until` で少し上)、内訳は `rankReason`、`score` は類似度のまま。**完了した todo は既定で出ない** — 新しい引数 `includeCompleted` (search / read の memory filter) で戻す。**引数の追加なので server → plugin の順**: creo-memories の対 PR は chronista-club/creo-memories#1153 (v0.99.0 で live に出してから merge)
-- skill / recipes: 退役の提案の作法 (recipes 8)。server が積む `duplicate` / `contradiction` (`change.retire`) の提案は session の始めに読み上げ、**人の GO があった分だけ** `proposal_accept`。段は report で agent が押せるが、押すのは人が決めてから。tool の追加・引数の変更は無い。creo-memories の対 PR は chronista-club/creo-memories#1148 (design doc 52)。**plugin の merge は server の live deploy の後** (`CREO_RETIRE_ON_SAVE` / `CREO_CONSOLIDATION_ENABLED` を on にする時に合わせる)
+- skill / tools-map: 検索の順位 (creo-memories design doc 51)。`search` の query 検索は `rankScore` 順 (類似度 + 系統の段 = 同じ帯なら 考え > 未完のやること > 出来事、出来事は新しいほど上、`hot_until` で少し上)、内訳は `rankReason`、`score` は類似度のまま。**完了した todo は既定で出ない** — 新しい引数 `includeCompleted` (search / read の memory filter) で戻す。**引数の追加なので server → plugin の順**: creo-memories の対 PR は chronista-club/creo-memories#1153 (v0.99.0、2026-10-24 に live に出した後に merge)
+- skill / recipes: 退役の提案の作法 (recipes 8)。server が積む `duplicate` / `contradiction` (`change.retire`) の提案は session の始めに読み上げ、**人の GO があった分だけ** `proposal_accept`。段は report で agent が押せるが、押すのは人が決めてから。tool の追加・引数の変更は無い。creo-memories の対 PR は chronista-club/creo-memories#1148 (design doc 52)。server は v0.98.0 で live (flag は夜間 job の dry-run だけ on、保存時のトリガは off)。提案が積まれ始める前に作法を配っておく
 
 ## [0.66.1] - 2026-10-22
 
