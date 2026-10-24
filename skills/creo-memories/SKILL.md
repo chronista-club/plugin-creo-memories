@@ -2,7 +2,7 @@
 name: creo-memories
 description: creo-memories = 外部脳。context が尽きても、session / machine / model / 人をまたいで続きができる場所。書くのは「次に拾う誰かのため」、読むのは「自分が始めた気になる前」。
 metadata:
-  version: 0.66.1
+  version: 0.67.0
   tags: memory, external-brain, collaboration, chronista
 ---
 
@@ -64,11 +64,12 @@ metadata:
 
 ### 整える (提案する)
 - 種類が違う / label を足したい / 2 つが同じ / 矛盾している → `propose({ kind, target, change, reason })`。判断は人
+- **退役の提案** (server が積む `duplicate` / `contradiction`、`change.retire` 付き。新しい考えが立った時に同じ話題の古い考えを見つけたもの) は session の始めに読み上げ、**人の GO があった分だけ** `proposal_accept`。段は report で agent が押せるが、押すのは人が決めてから (recipes 8)
 - label は先に `label_list()` で既存を見て、合うものを `label_attach({ memoryId, labelIds })` (`labelIds` は id でも名前でも)。無ければ文法の中で `label_create({ name })` (既存の family に寄せる。family の例: `repo:` / `priority:` / `size:` / `phase:` / `mark:` / `area:`)。似た label が並んだら人に頼む (`propose({ kind: 'label_merge' })` は受け入れても今は記録だけで、統合は適用されない)
 - 要らない記憶は `forget` より supersede (archive の書き口はまだ無い)。lock 中は 409 — unlock は人に頼む
 
 ### 人だけができること
-lock と unlock / review 段の提案の受け入れ。agent は頼む・提案する。
+lock と unlock / review 段の提案の受け入れ / 退役の提案 (report 段) を「押す」判断。agent は頼む・提案する・読み上げる。
 
 ## D. 他者と
 
@@ -86,6 +87,7 @@ lock と unlock / review 段の提案の受け入れ。agent は頼む・提案�
 - `remember` の `labelIds` に無い label を渡すとエラー (先に `label_create`)。label 名の `/` は atlas 専用で使わない、大小は同じ扱い (`Area:MCP` = `area:mcp`)
 - `update_memory` / `forget` / `supersede` は lock 中に 409。`generate_story` / `generate_compass` の再生成は lock を見ずに上書き
 - `search({ atlasId })` は既定で子 atlas を含まない。含めるなら `includeDescendants: true` (読めない子は黙って落ちる。`scope: 'all'` では無意味)
+- `search({ query })` の並びは `rankScore` (類似度 + 系統の段)。同じくらい近いなら、いま有効な考え (guide / decision) が出来事 (handoff / log / 注釈) より上に来る。**完了した todo は既定で出ない** — 「前にやった作業」を探すなら `includeCompleted: true` か `lineage: "event"`。`score` は類似度のままなので、閾値の感覚は変わらない
 
 recipes: [recipes.md](reference/recipes.md) / 地図: [tools-map.md](reference/tools-map.md)
 

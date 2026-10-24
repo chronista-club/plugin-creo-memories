@@ -1,4 +1,4 @@
-# recipes — 7 つの場面
+# recipes — 8 つの場面
 
 引数は tool の説明文が SSOT。ここは順番と判断だけ。
 
@@ -87,3 +87,18 @@ remember({
 - 欄を進める: `patch_memory({ id, before, after, note: '待ちが解けた' })` (スレッドの id は変わらない。前の本文は版に残り、`note` は「なぜ動いたか」として版と一緒に読める)
 - 仲間を足す・外す: `relate({ from: '<スレッドの id>', to: ['mem_…'] })` / `unrelate({ from: '<スレッドの id>', to: ['mem_…'] })` (`type` 省略 = `references`)。スレッドの id は変わらない。足した仲間は本文の行にも `id="mem_…"` で書く (逆も同じ: 行から消したら `unrelate`)
 - スレッドを作り直す (`supersedes`) のは、話そのものが別の話になった時だけ (例: 3.3 系が終わって 3.4 系が始まった)。日々の更新は `patch_memory` と `relate` / `unrelate` で、同じ id のまま
+
+## 8. 退役の提案を片づける — session の始めに、人の GO を得てから
+
+server が「新しい考え (guide / decision …) が立ったので、同じ話題の古い考えを退役させませんか」という提案を積む (creo-memories design doc 52。保存時と夜間に、規則で候補を絞り、Haiku が「重複 / 矛盾 / 無関係」と理由を判定したもの)。種類は `duplicate` (同じ手続きの古い版) か `contradiction` (新しい方が古い方法をやめた)、`change.retire = true`、`proposed_by` は `creo`。段は report で agent が `proposal_accept` できるが、**人の明示の GO 無しに押さない**。accept すると古い記憶が新しい記憶に supersede される (検索から消える。`unsupersede` / `proposal_revert` で戻せる)
+
+```
+proposal_list({ kind: 'duplicate', open: true })        // contradiction も同じく
+// 読み上げる: 新しい記憶 (change.supersede_by) の題、古い記憶 (targets) の題と日付、reason、verdicts の reason
+//   「『<新の題>』が立ったので、<古い N 件> を退役させる提案です。受け入れますか？」
+proposal_accept({ id })   // 人が GO と言った分だけ。まとめて GO は可
+proposal_reject({ id })   // 「違う」と言われたら。理由は古い記憶への annotate で残す (却下された組は 30 日は再提案されない)
+```
+- 読み上げは session の始め (「今日の脳」の「提案 N 件」が合図)。GO の無い提案は次の session に持ち越す (期限 30 日)
+- 新旧の判断は人の仕事。agent は reason (なぜ退役なのか) を示し、迷う組は古い記憶を `get_memory` で開いて見せる
+- 退役の提案は agent は作れない (`change.retire` を付けた `propose` は server が拒む。積むのは server の規則 `creo` だけ)。手で見つけた古い記憶は、今までどおり新しい記憶に `supersedes` を付けるか `supersede_memory` で
