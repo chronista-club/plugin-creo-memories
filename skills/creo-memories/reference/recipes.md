@@ -46,6 +46,7 @@ list_todos({ atlasId })
 complete_todo({ id })
 ```
 - 進捗は todo に `annotate`。完了と結果と PR を 1 手なら `complete_with_context({ memory_id, result, url, service: 'github' })` (`url` は `service` と一緒の時だけ残る。`service` が無いと黙って捨てられる)
+- その作業に thread があれば、完了・待ちの解消・方針変更を本文にも反映する (7)。thread への注釈だけでは、古い `now` / `waiting` / `remaining` は変わらない
 - 種類が todo でない記憶に priority は付かない (作る時は server が捨てて warn、`update_todo` では ValidationError)
 - 優先度・期限を外す: `update_todo({ id, priority: null, dueAt: null })`。完了を外す: `update_todo({ id, status: 'pending' })`
 
@@ -69,7 +70,7 @@ remember({
     remaining "<残り>"
     remaining id="mem_…"
     note """
-        欄に収まらない話 (理由・ためらい・経緯)
+        今も判断に必要な前提・制約
         """
 }`,
   contentType: 'application/vnd.kdl',
@@ -80,13 +81,17 @@ remember({
   atlasId,
 })
 ```
-- 題は `thread` の引数 (KDL の記憶は一覧の題が「KDL (n B)」になるので、スレッドの題は本文に書く)
-- 欄は `now` (今どこ) / `waiting` (待ち) / `remaining` (残り) / `note` (メモ) の骨だけ。値は自由文。同じ欄は何行書いてもよい。知らない欄も名前のまま描かれる
+- 題は `thread` の引数。スレッドの形なら、一覧・検索にもこの題が出る
+- **本文は現在地を保つ。** `now` は今の結論、`waiting` は未解決の待ち、`remaining` は残る作業、`note` は今も必要な前提・制約。複数の話題は複数行で表せるが、同じ話題が進んだら既存の行を書き換える。完了報告・試行・検証ログを `now` や `note` に積み続けない
 - 行の `id="mem_…"` は 1 行に 1 つ、`mem_…` の宛名だけ (slug や UUID は不可)。その記憶が仲間 (`references`) にいれば、web は種類・題・完了を**今の状態で**出す — 題や状態を本文に写さない。id を付けた記憶は `references` にも入れる。文の無い `remaining id="mem_…"` は記憶の題で描かれる。web がこの id を記憶の題に描き替えるので、「id を本文に貼らない」の例外はこの属性だけ。文の中には書かない
 - 形に収まらない KDL (数・`id` 以外の属性・子を持つ欄、`id` が `mem_…` でない行、`thread` の外のノード) はスレッド全体が欄ではなく木で描かれる。KDL として読めなければ保存時に行・列が返るので、直して書き直す
-- 欄を進める: `patch_memory({ id, before, after, note: '待ちが解けた' })` (スレッドの id は変わらない。前の本文は版に残り、`note` は「なぜ動いたか」として版と一緒に読める)
-- 仲間を足す・外す: `relate({ from: '<スレッドの id>', to: ['mem_…'] })` / `unrelate({ from: '<スレッドの id>', to: ['mem_…'] })` (`type` 省略 = `references`)。スレッドの id は変わらない。足した仲間は本文の行にも `id="mem_…"` で書く (逆も同じ: 行から消したら `unrelate`)
+- 欄を進める: 結果・根拠・判断の経緯を `annotate({ targetMemoryId: '<スレッドの id>', content: '…' })` に残し、`patch_memory({ id, before, after, note: '待ちが解けた' })` で今の状態へ。解けた `waiting` と済んだ `remaining` は畳む。id は変わらず、前の全文は版に残る。同じ結果が既に注釈されていれば重ねて作らない
+- 仲間を足す・外す: `relate({ from: '<スレッドの id>', to: ['mem_…'] })` / `unrelate({ from: '<スレッドの id>', to: ['mem_…'] })` (`type` 省略 = `references`)。本文の行で指す記憶は仲間にも入れる。**過去の行を畳むだけなら線は残す。** `unrelate` は、その記憶が話の仲間でなくなった時だけ
 - スレッドを作り直す (`supersedes`) のは、話そのものが別の話になった時だけ (例: 3.3 系が終わって 3.4 系が始まった)。日々の更新は `patch_memory` と `relate` / `unrelate` で、同じ id のまま
+
+積み上がった thread を畳む時は、全文・直近の注釈・関連 todo を読み、経緯の要点を注釈してから、**読んだ全文を `before`、短い現在地を `after` にして patch** する。古い予定を今の事実と混ぜない。競合して `before` が合わなければ読み直す。保存後に本文をもう一度読み、現在地・未確認点・次の作業を確認する。引き継ぎ・完了報告の前にもこの確認を行う。
+
+版は web の「履歴」、MCP は `get_memory({ id, expand: ['versions'] })` で辿れる (MCP は版の情報と冒頭、web は前の全文)。server が自動で要約するわけではない。行数・文字数の上限で切るのではなく、今も有効な内容を残す。
 
 ## 8. 退役の提案を片づける — session の始めに、人の GO を得てから
 

@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.67.1] - 2026-10-27
+
+- skill / recipes: thread の本文を現在地として書き換える手順へ。経緯は注釈、前の全文は既存の版に残し、解けた待ち・済んだ作業を畳む。引き継ぎ・完了報告の前に本文を読み直す。過去の行を本文から畳んでも仲間の線は残す。新しい tool・引数・自動要約は追加しない (creo-memories design 48 / 49)
+
 ## [0.67.0] - 2026-10-24
 
 - skill / tools-map: 検索の順位 (creo-memories design doc 51)。`search` の query 検索は `rankScore` 順 (類似度 + 系統の段 = 同じ帯なら 考え > 未完のやること > 出来事、出来事は新しいほど上、`hot_until` で少し上)、内訳は `rankReason`、`score` は類似度のまま。**完了した todo は既定で出ない** — 新しい引数 `includeCompleted` (search / read の memory filter) で戻す。**引数の追加なので server → plugin の順**: creo-memories の対 PR は chronista-club/creo-memories#1153 (v0.99.0、2026-10-24 に live に出した後に merge)
