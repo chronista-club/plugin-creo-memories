@@ -2,7 +2,7 @@
 name: creo-memories
 description: creo-memories = 外部脳。context が尽きても、session / machine / model / 人をまたいで続きができる場所。書くのは「次に拾う誰かのため」、読むのは「自分が始めた気になる前」。
 metadata:
-  version: 0.62.2
+  version: 0.67.1
   tags: memory, external-brain, collaboration, chronista
 ---
 
@@ -19,7 +19,7 @@ metadata:
 **creo はその全員が同じものを読む外部脳**であり、記録 (todo / spec / 決定 / 引き継ぎ) の SSOT でもある。
 
 - **書く**のは「次に拾う誰かのため」。決めた / 学んだ / 壊れた / 渡す / 後で自分が探す、のどれかなら書く。会話の写しは書かない
-- **読む**のは「自分が始めた気になる前」。session 開始の「今日の脳」が実際に届いていれば利用する。過去の決定を前提にする前に `search`
+- **読む**のは「自分が始めた気になる前」。session 開始の「今日の脳」は既定の atlas の分。project の続きは `briefing({ atlasId })`。過去の決定を前提にする前に `search`
 - 機械的な規則 (lock、行為者、提案の門、種類の列挙、label の上限) は **server が守る**。ここに「必ず」は無い。判断はあなたがする
 
 ## B. 世界の形 (詳細: [model.md](reference/model.md))
@@ -36,9 +36,22 @@ metadata:
 
 ### 書く
 - `remember({ content, kind, atlasId })`。1 行目は題。結論が先。id や生 SQL や長い log は本文に貼らない (人が web / iOS で読む)
-- **context が尽きる前に handoff を 1 本** (`kind: 'handoff'`): 次の一手 / 止まっている理由 / 見ている file / 決めたこと。きっかけは場面で違う — 長い作業の節目、compaction の前 (hook が思い出させる)、終える前。「まだ書いていない」と気づいた時が書く時
-- 既存の記憶に足すなら `annotate({ targetMemoryId, content })`。本文を書き換えるのは自分が書いた記憶の訂正だけ
+- **context が尽きる前に handoff を 1 本** (`kind: 'handoff'`): 次の一手 / 止まっている理由 / 見ている file / 決めたこと。きっかけは場面で違う — 長い作業の節目、compaction の後 (SessionStart の hook が促す。要約を材料に書く)、終える前。「まだ書いていない」と気づいた時が書く時
+- Atlas をまたぐ 1 つの話は **スレッド**に束ねる: `kind: 'context'` + label `mark:thread`、本文は KDL の `thread "<題>" { now / waiting / remaining / note }`、仲間は `references`。詳細: [recipes.md](reference/recipes.md) の 7
+- **スレッドの本文は現在地。** 作業が進んだら既存の行を書き換え、解けた待ち・済んだ作業を畳む。経緯は注釈、前の全文は版に残る。完了報告を `now` に追記し続けない。引き継ぎ・完了報告の前に本文も読み直す
+- 既存の記憶への補足は `annotate({ targetMemoryId, content })`。スレッドの現在地は上記の手順で更新する。それ以外の本文を書き換えるのは、自分が書いた記憶の訂正だけ
 - 古い理解を新しい理解で置き換えたら `remember({ content, supersedes: ['mem_…'] })` か `supersede_memory({ id, supersededBy })`。消さない
+
+#### 新しい記録を保存する前に
+
+これから作る記憶・注釈・要約・引き継ぎの原稿に適用する。保存済みの記憶を推敲のために一括更新しない。
+
+- 結論を先に置き、確認したこと・未確認点・次の作業を必要に応じて分ける。短い記録に空の見出しや固定のひな形を足さない。
+- 誰が何を決めたか、何を確認したか、どの条件で次へ進めるかを読み取れるか確かめ、追いにくい箇所だけ直す。担当・原因・次の作業が不明なら推測で埋めない。
+- 保存前に原稿と根拠を照合する。数値・対象・条件・否定・確かさを保ち、「実装済み」「検証済み」「公開済み」を混同しない。「未確認」を「問題なし」に変えず、予定を完了として書かない。
+- ユーザーの発言や裁定の引用、コードはそのまま保つ。意味が明確な専門用語や箇条書きは残す。読みやすさのために必要な根拠を削らない。
+
+例: 「修正済み、実機未確認」を「修正は完了した。実機ではまだ確認していない」と分けても、「修正が完了し、正常に動作している」とは書かない。
 
 ### どこへ
 - project のことは **project の atlas** (session 開始の hook が手がかりを出す。無ければ `read({ resource: 'atlas' })`)
@@ -46,17 +59,18 @@ metadata:
 - mako 個人の情報や一回性の感想は書かない
 
 ### 読む
-- 「今日の脳」(やること / 考え / 出来事 / 提案 / lock 中) が instructions に届いていれば利用する。途中で `briefing({ atlasId })`
+- 「今日の脳」(やること / 考え / 出来事 / 提案 / lock 中) は instructions に届く既定の atlas の分。project の分は `briefing({ atlasId })`
 - 前提にする前に `search({ query, atlasId })`。`atlasId` は既定でその atlas だけ。子 atlas も一緒に引くなら `search({ query, atlasId, includeDescendants: true })` (親 + read できる子孫。`/agent` を親にすれば `/agent/<自分>` も入る)
 - todo を始める前に `read({ resource: 'todo' })`。終えたら `complete_todo({ id })`
 
 ### 整える (提案する)
 - 種類が違う / label を足したい / 2 つが同じ / 矛盾している → `propose({ kind, target, change, reason })`。判断は人
-- label は先に `label_list()` で既存を見て、合うものを `label_attach({ memoryId, labelIds })`。無ければ文法の中で `label_create({ name })` (既存の family に寄せる。family の例: `repo:` / `priority:` / `size:` / `phase:` / `mark:` / `area:`)。似た label が並んだら `propose({ kind: 'label_merge' })`
-- 要らない記憶は `forget` より archive や supersede。lock 中は 409 — unlock は人に頼む
+- **退役の提案** (server が積む `duplicate` / `contradiction`、`change.retire` 付き。新しい考えが立った時に同じ話題の古い考えを見つけたもの) は session の始めに読み上げ、**人の GO があった分だけ** `proposal_accept`。段は report で agent が押せるが、押すのは人が決めてから (recipes 8)
+- label は先に `label_list()` で既存を見て、合うものを `label_attach({ memoryId, labelIds })` (`labelIds` は id でも名前でも)。無ければ文法の中で `label_create({ name })` (既存の family に寄せる。family の例: `repo:` / `priority:` / `size:` / `phase:` / `mark:` / `area:`)。似た label が並んだら人に頼む (`propose({ kind: 'label_merge' })` は受け入れても今は記録だけで、統合は適用されない)
+- 要らない記憶は `forget` より supersede (archive の書き口はまだ無い)。lock 中は 409 — unlock は人に頼む
 
 ### 人だけができること
-lock と unlock / review 段の提案の受け入れ。agent は頼む・提案する。
+lock と unlock / review 段の提案の受け入れ / 退役の提案 (report 段) を「押す」判断。agent は頼む・提案する・読み上げる。
 
 ## D. 他者と
 
@@ -67,13 +81,14 @@ lock と unlock / review 段の提案の受け入れ。agent は頼む・提案�
 
 ## E. 罠 (tool の説明文が SSOT。ここは非自明なものだけ)
 
-- `annotate` は `targetMemoryId`、`get_annotations` は `memoryId`
+- `annotate` は `targetMemoryId`、`get_annotations` は `memoryId`。注釈・返信・`remember({ annotates })` は対象の Atlas を継承し、明示した `atlasId` が優先。通常の `remember` で `atlasId` を省略すると Personal へ保存され、警告が返る。プロジェクトの記憶では保存先を明示する
 - `create_todo` に title は無い (content の 1 行目)。`priority` は `low | medium | high`
 - `read` の filter は strict (未知 key はエラー)。`resource` は `memory | atlas | todo`
 - `category` は deprecated (対応表で `kind` に写る、対応の無い値は未整理)。**`tags` 引数は無い** (spec 25 D11、2026-09-07 に撤去)。旧 tag の語彙は label に写した分だけ引ける (`labelIds`)。本文に語があれば `search({ query })` で当たる
 - `remember` の `labelIds` に無い label を渡すとエラー (先に `label_create`)。label 名の `/` は atlas 専用で使わない、大小は同じ扱い (`Area:MCP` = `area:mcp`)
 - `update_memory` / `forget` / `supersede` は lock 中に 409。`generate_story` / `generate_compass` の再生成は lock を見ずに上書き
 - `search({ atlasId })` は既定で子 atlas を含まない。含めるなら `includeDescendants: true` (読めない子は黙って落ちる。`scope: 'all'` では無意味)
+- `search({ query })` の並びは `rankScore` (類似度 + 系統の段)。同じくらい近いなら、いま有効な考え (guide / decision) が出来事 (handoff / log / 注釈) より上に来る。**完了した todo は既定で出ない** — 「前にやった作業」を探すなら `includeCompleted: true` か `lineage: "event"`。`score` は類似度のままなので、閾値の感覚は変わらない
 
 recipes: [recipes.md](reference/recipes.md) / 地図: [tools-map.md](reference/tools-map.md)
 

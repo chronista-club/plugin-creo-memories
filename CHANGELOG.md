@@ -5,6 +5,90 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.67.1] - 2026-10-27
+
+- skill / recipes: thread の本文を現在地として書き換える手順へ。経緯は注釈、前の全文は既存の版に残し、解けた待ち・済んだ作業を畳む。引き継ぎ・完了報告の前に本文を読み直す。過去の行を本文から畳んでも仲間の線は残す。新しい tool・引数・自動要約は追加しない (creo-memories design 48 / 49)
+
+## [0.67.0] - 2026-10-24
+
+- skill / tools-map: 検索の順位 (creo-memories design doc 51)。`search` の query 検索は `rankScore` 順 (類似度 + 系統の段 = 同じ帯なら 考え > 未完のやること > 出来事、出来事は新しいほど上、`hot_until` で少し上)、内訳は `rankReason`、`score` は類似度のまま。**完了した todo は既定で出ない** — 新しい引数 `includeCompleted` (search / read の memory filter) で戻す。**引数の追加なので server → plugin の順**: creo-memories の対 PR は chronista-club/creo-memories#1153 (v0.99.0、2026-10-24 に live に出した後に merge)
+- skill / recipes: 退役の提案の作法 (recipes 8)。server が積む `duplicate` / `contradiction` (`change.retire`) の提案は session の始めに読み上げ、**人の GO があった分だけ** `proposal_accept`。段は report で agent が押せるが、押すのは人が決めてから。tool の追加・引数の変更は無い。creo-memories の対 PR は chronista-club/creo-memories#1148 (design doc 52)。server は v0.98.0 で live (flag は夜間 job の dry-run だけ on、保存時のトリガは off)。提案が積まれ始める前に作法を配っておく
+
+## [0.66.1] - 2026-10-22
+
+- skill: 新しい記憶・注釈・要約・引き継ぎを、根拠と意味を保って推敲する指針を追加。数値・条件・否定・確かさ・引用を保ち、実装・検証・公開を区別する。保存済みの記憶の一括更新は対象外。
+
+## [0.66.0] - 2026-10-21
+
+- tools-map: `diagnose` / `search_logs` を外す (`system_health` は残す)。2 つは全利用者のログ (user ID、本文の断片、例外の文面) を誰にでも返していたので、server から tool ごと消す (mako 裁定 2026-10-21、creo-memories の todo `mem_1CgE5FPUMQ8HcSEQcWmYvE`)。**tool の撤去は plugin → server の順** — server から先に消すと、plugin の main が消えた名前を案内して契約テストが落ちる。creo-memories の対 PR は chronista-club/creo-memories#1130
+
+## [0.65.2] - 2026-10-20
+
+- sync: curl は PATH を順に見て、Homebrew の shim の dir (`…/Homebrew/shims/…`) を飛ばした最初のものを使う。Claude Code が hook を流す env では shim の dir が `/usr/bin` より前に来ることがあり、shim の curl は「This shim is internal」で必ず失敗する。mako の環境で 2 日間 sync が止まっていた (0.65.1 の診断の直しで、初めて log に本当の理由が出た)。shim しか無い時は「curl が無い」
+
+## [0.65.1] - 2026-10-20
+
+deep review (team-b、2026-10-20) の 🔴 7 件。creo-memories の todo `mem_1CgCGNYiSYbiFW2NyTJRc9`。
+
+- hooks: handoff の促しを **SessionStart の `compact`** に移し、`PreCompact` と `Stop` を外す。PreCompact の stdout は debug log、Stop の `systemMessage` は人にだけ見え、どちらも agent に届いていなかった (Claude Code の hooks の文書)。compaction の後に、要約を材料に handoff を書く。SKILL.md / recipes 2 / README の「hook が思い出させる」を事実に
+- hooks: 「今日の脳」は既定の atlas の分で project の分ではない。session-start の「届いていれば検索は不要」を「project の続きは `briefing({ atlasId })` と `read({ resource: 'todo' })`」に (SKILL.md / recipes 1 も)
+- recipes 1: 直前の handoff は `read({ resource: 'memory', filter: { kind: 'handoff', atlasId }, limit: 3 })` (新しい順)。`search({ query: 'handoff' })` は意味の近い順で、新しい handoff が出てこなかった
+- recipes 5 / tools-map: `complete_with_context` の `url` は `service` と一緒の時だけ残る (`service` が無いと server が黙って捨てる)
+- sync: 写し先を本体の checkout の project dir に (Claude Code は worktree / VP lane / subdir の session でも本体の memory を読む。lane では誰も読まない dir に写していた)。git の common dir から出す。hook の env に残った `GIT_*` や `CDPATH` には引きずられない
+- sync: 繋がらない (curl の失敗。brew の shim など) / HTTP の失敗 (401 / 502) を「label cache:claude が無い」と言わない。どの curl が何と言ったか (curl の stderr。失敗でも stdout の最後に `-w` の `000` が来るので混ぜない)、status を出す。背景の同期の log を上書きせず足していく
+- sync: shasum が無いと本文の比較が空どうしで「同じ」になり、local の本文を退避せずに上書きしていた。cmp で比べ、両方の本文が読めて「同じ」と言えた時だけ退避しない
+- tests: `.sh` の変数の直後に全角の文字を置かない (macOS の `/bin/bash` 3.2 は `$rc、` のバイトを変数名の続きとして読み、`set -u` で止まる) を静的に見る
+- README: tool の数 (75) を外す (契約テストが server と過不足なしを見ている。数は書くと腐る)
+
+## [0.65.0] - 2026-10-20
+
+- tools-map: `forget_version` を足す (記憶の版を 1 つ消す。作者だけ、lock 中は不可、`confirm: true`。本文から消した秘密が版に残った時に)。creo-memories #1121 と対。**tool の追加は server → live deploy → plugin の順** (mako 裁定 2026-10-20、server は v0.94.0 で live)。この PR の merge 後に server の `AWAITING_PLUGIN` から外す
+
+## [0.64.1] - 2026-10-20
+
+- tools-map / recipes: 記憶の版。`append_memory` / `patch_memory` / `update_memory` の本文の書き換えは前の本文を版に残し、`note` で理由を一言添えられる。`get_memory` の `expand` に `versions` (鮮度を読む時に)。recipes 7 の「欄を進める」に `note`。creo-memories #1120 と対 (**引数の追加なので server → plugin の順**)
+
+## [0.64.0] - 2026-10-20
+
+- tools-map: `update_memory` の `kind` (直接変えてよい、null で未整理に戻す。mako 裁定 2026-10-19) と `displayName` (題、作者だけ)、`update_todo` の `priority` / `dueAt` を null で外す、`update_todo` の `status` の語彙 (`pending` / `in_progress` / `completed`)。creo-memories #1117 と対 (**引数の追加なので server → plugin の順**)
+- tools-map: `unsupersede` を足す (間違えて付けた置き換えの印を外す)。creo-memories #1118 と対 (**tool の追加なので plugin → server の順**)
+- 文言を事実に揃える (棚卸し 2026-10-19): archive の書き口はまだ無い (forget の代わりは supersede)、`label_merge` / `decay` の提案は受け入れても記録だけ (適用まで進むのは `classify` と `label_create`)、`label_attach` の `labelIds` は名前でも、todo でない記憶への priority は `update_todo` では ValidationError
+
+## [0.63.0] - 2026-10-19
+
+- tools-map: `relate` / `unrelate` を足す (記憶どうしの線を後から張る / 外す。`references` / `extends` / `derived_from`)。recipes 7 の「仲間を足す・外すは supersedes で新しい版を作る」を `relate` / `unrelate` に書き換え (スレッドの id が変わらなくなる)。recipes 4 に「書いた後に気づいたら relate」。creo-memories の PR (tool の追加なので **plugin → server の順**。server の PR 番号は merge 時に本文へ) と対
+
+## [0.62.10] - 2026-10-19
+
+- recipes: 7「スレッドを編む」を足す。スレッド = `kind: 'context'` + label `mark:thread`、本文は KDL の `thread "<題>" { now / waiting / remaining / note }` (値は自由文、行に `id="mem_…"`)、仲間は `references`。仲間を後から足す・外すのは今は `supersedes` で新しい版を作る。SKILL.md の「書く」から 1 行で指す。creo-memories #1111 (`/threads`) / #1112 (KDL のスレッドを欄で描く) と対 (使い方の追加なので server → plugin の順。server は v0.90.0)
+
+## [0.62.9] - 2026-10-09
+
+- tools-map: 本文の型に KDL (`application/vnd.kdl`) を足す (spec 31 / spec 32 段 2)。`remember` の `contentType` に書け、`search` / `read` の item の `title` は「KDL (1.2 KB)」の形。保存時の構文の検査はまだ無い。creo-memories #1058 と対 (**引数の値の追加なので server → plugin の順**に merge)
+
+## [0.62.8] - 2026-10-06
+
+- tools-map: `briefing` と `get_memory` の返りが KDL になる (spec 32 段 1、KDL を Creo のプリンシパルな書式に)。本文は raw の複数行文字列 `#"""…"""#` の中がそのまま。今までの JSON は `format: 'json'` で取れる。他の tool は JSON のまま (server の env で tool ごとに徐々に移す)。creo-memories 側の PR と対 (**引数の追加なので server → plugin の順**に merge)
+
+## [0.62.7] - 2026-10-06
+
+- tools-map: 本文の型の旧名 (`markdown` 等) の記述を外す。server の公開 schema も MIME だけになった (旧名は server の中でだけ受ける。spec 31)。creo-memories #1037 と対 (値の絞りで key は変わらないので順序は問わない)
+
+## [0.62.6] - 2026-10-06
+
+- tools-map: 本文の型を MIME で書く (spec 31)。`remember` の `contentType` は既定 `text/markdown`、ほかに `text/plain` / `text/html` / `application/json` / `application/yaml` / `text/csv` (旧名も受けるが正規名で書く)。`search` / `read` の filter に `contentType`、構造化データの item の `title`。creo-memories 側の PR と対 (**引数の追加なので server → plugin の順**に merge)
+
+## [0.62.5] - 2026-10-04
+
+- tools-map: `update_atlas` の `compass_guide_enabled` / `story_guide_enabled` (コンパス / ストーリーの書き方を、指定は残したまま有効 / 無効にする、spec 29 REQ-GUIDE-006) を書く。creo-memories 側の PR と対 (**引数の追加なので server → plugin の順**に merge)
+
+## [0.62.4] - 2026-10-03
+
+- 注釈・返信・remember(annotates) の Atlas 継承、明示 atlasId の優先、通常 remember の Personal fallback 警告を記載。対応する server 修正の展開後に有効。
+
+## [0.62.3] - 2026-10-03
+
+- tools-map: `generate_story` / `generate_compass` の `locale` (書く言語、省略時 en) と、`update_atlas` の `compass_guide_id` / `story_guide_id` (Atlas ごとのコンパス / ストーリーの書き方、spec 29) を書く。呼び名を「羅針盤」から「コンパス」に。creo-memories 側の MCP の PR と対 (**引数の追加なので server → plugin の順**に merge)
 
 ## [0.62.2] - 2026-10-01
 

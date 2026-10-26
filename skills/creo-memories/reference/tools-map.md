@@ -6,10 +6,10 @@ tool の説明文と引数は **MCP server の定義が SSOT** (`apps/creo-mcp-s
 
 | tool | いつ |
 |---|---|
-| `briefing` | 「今日の脳」(やること / 考え / 出来事 / 提案 / lock 中)。session 開始時は同じものが instructions に自動で入る。途中で読み直す時に |
-| `search` | 過去の決定・経緯を前提にする前に。`kind` / `lineage` / `labelIds` / `sender` / `includeArchived` で絞れる。`atlasId` は既定でその atlas だけ、`includeDescendants: true` で子 atlas も (親 + read できる子孫) |
-| `read` | 構造で読む (`resource: memory \| atlas \| todo`、filter は strict = 未知 key はエラー)。todo の一覧はこれ。memory の一覧は既定で置き換えられた記憶と仕舞った記憶を隠す — Atlas の中身を全部数える / 消す時は filter に `includeSuperseded: true` と `includeArchived: true` |
-| `get_memory` | id / slug で 1 件。`expand: ['labels' \| 'provenance']` |
+| `briefing` | 「今日の脳」(やること / 考え / 出来事 / 提案 / lock 中)。session 開始時は同じものが instructions に自動で入る。途中で読み直す時に。返りは **KDL** (`briefing { todos { todo <id> … } … }`)。値をプログラムで拾うなら `format: 'json'` |
+| `search` | 過去の決定・経緯を前提にする前に。`kind` / `lineage` / `labelIds` / `sender` / `contentType` / `includeArchived` で絞れる (`contentType` は本文の型 = MIME、例 `application/json`)。JSON / YAML / CSV / KDL の記憶は item の `title` が「JSON (1.2 KB)」のような型と大きさ。`atlasId` は既定でその atlas だけ、`includeDescendants: true` で子 atlas も (親 + read できる子孫)。**並び (design 51)**: query がある時は `rankScore` 順 = 類似度 (`score`、そのまま) + 系統の段 (同じ帯なら 考え > 未完のやること > 出来事、出来事は新しいほど上、`hot_until` が未来なら少し上)。内訳は `rankReason`。**完了した todo は既定で出ない** (`includeCompleted: true` で戻す)。経緯 (出来事) を引きたい時は `lineage: "event"` / `fromDate` で絞る |
+| `read` | 構造で読む (`resource: memory \| atlas \| todo`、filter は strict = 未知 key はエラー)。todo の一覧はこれ。memory の filter に `contentType` (本文の型) も使える。memory の一覧は既定で置き換えられた記憶と仕舞った記憶を隠す — Atlas の中身を全部数える / 消す時は filter に `includeSuperseded: true` と `includeArchived: true`。memory の `q` 検索は `search` と同じ並びで完了した todo を隠す (filter `includeCompleted: true` で戻す) |
+| `get_memory` | id / slug で 1 件。`expand: ['labels' \| 'provenance' \| 'versions']` (`versions` = 本文を書き換えた跡。新しい順に 20 件、いつ・誰が・どの道で・一言・前の本文の冒頭。記憶がどれだけ書き直されてきたか = 鮮度を読む時に)。返りは **KDL** (`memory <id> kind=… { content #"""…"""# }`、本文は `#"""` の中がそのまま)。値をプログラムで拾うなら `format: 'json'` |
 | `get_memory_image` | 記憶に付いた画像を image で見る (iOS の赤入れ = 写真・スクショに手書きで赤を入れた 1 枚)。赤の意味は画像を見て読む。本文は `get_memory` |
 | `list_recent_memories` | 直近の N 件 |
 | `get_annotations` / `get_provenance` / `get_relations` | 注釈の thread / 派生の系譜 / 関係の graph |
@@ -21,29 +21,31 @@ tool の説明文と引数は **MCP server の定義が SSOT** (`apps/creo-mcp-s
 
 | tool | いつ |
 |---|---|
-| `remember` | 決めた / 学んだ / 壊れた / 渡す / 後で探す。`kind` を付ける (迷えば付けない = 未整理、後で提案が拾う)。`supersedes` で古い理解を置き換える |
+| `remember` | 決めた / 学んだ / 壊れた / 渡す / 後で探す。`kind` を付ける (迷えば付けない = 未整理、後で提案が拾う)。`supersedes` で古い理解を置き換える。本文の型 `contentType` は MIME で書く: 既定 `text/markdown`、ほかに `text/plain` / `text/html` / `application/json` / `application/yaml` / `text/csv` / `application/vnd.kdl` (KDL)。agent が引くデータは JSON / YAML / CSV / KDL の型で置くと、壊れた JSON は保存時に止まり、web では整形・表で読める |
 | `annotate` / `reply_annotation` | 既存の記憶に進捗・訂正・議論を足す (`targetMemoryId`)。本文を書き換えるより先にこちら |
-| `append_memory` / `patch_memory` | 本文の末尾に足す / 一部を置換 (in-place) |
-| `update_memory` | 属性 (atlas / ttl / kind / metadata) や本文の全置換。lock 中は 409 |
+| `append_memory` / `patch_memory` | 本文の末尾に足す / 一部を置換 (in-place)。書き換える前の本文は版に残る (id は変わらない)。`note` に書き換えた理由を一言 (「待ちが解けた」等) 添えると、版を読む人に効く |
+| `update_memory` | 属性 (atlas / ttl / `kind` / `displayName` / metadata) や本文の全置換 (前の本文は版に残る。`note` で理由を一言)。`kind` は直接変えてよい (null で未整理に戻す。未整理に付けるのはいつでも通る。種類が付いていて完了・置き換えの印もある記憶は変えられない)。判断を人に委ねたい時は `propose({ kind: 'classify' })`。`displayName` は題 (検索とスレッドで本文の見出しの代わりに出る。null か空で外す。作者だけ。名前で引く鍵にもなる)。lock 中は 409 |
 | `attach_or_ref` | 添付 (file) を紐付ける |
 | `link_external` | GitHub の PR / issue と対にする (`service` / `external_id` / `url`) |
+| `relate` / `unrelate` | 記憶どうしの線を後から張る / 外す (`from` → `to: [...]`、`type` は `references` (既定) / `extends` / `derived_from`)。張れるのは `from` の作者。`to` は読める記憶だけ (無い記憶と読めない記憶は同じ返り)。重複は何もしない、無い線を外すのも何もしない。注釈は `annotate`、置き換えは `supersede_memory` |
 | `record_work_log` / `search_work_logs` | agent 間・人との会話の記録と検索 (`workLogType`) |
-| `generate_story` / `generate_compass` / `create_process` | atlas の物語 / 羅針盤 / 連鎖を生成 (再生成は上書き) |
+| `generate_story` / `generate_compass` / `create_process` | atlas の物語 / コンパス / 連鎖を生成 (再生成は上書き)。物語とコンパスは `locale` (`ja` / `en` / `ko`、省略時 en) で書く言語を決める。利用者の言語に合わせて渡す。Atlas に書き方が指定されていれば、それも使う |
 
 ## やること
 
 | tool | いつ |
 |---|---|
-| `create_todo` / `update_todo` / `complete_todo` / `delete_todo` | やること の CRUD。title は無い (content の 1 行目が題)。`priority` / `dueAt` |
+| `create_todo` / `update_todo` / `complete_todo` / `delete_todo` | やること の CRUD。title は無い (content の 1 行目が題)。`priority` / `dueAt` (`update_todo` では null で外す)。`update_todo` の `status` は `pending` / `in_progress` / `completed` (記憶の `active` / `done` とは別の語。完了を外す = `status: 'pending'`) |
 | `list_todos` | 未完を priority 順に。`groupBy` / `labelIds` |
-| `complete_with_context` | 完了 + 結果 + 外部 link を 1 手で |
+| `complete_with_context` | 完了 + 結果 + 外部 link を 1 手で (`url` は `service` と一緒の時だけ残る。`service` が無いと黙って捨てられる) |
 
 ## 整える — 種類・置換・label・提案
 
 | tool | いつ |
 |---|---|
-| `supersede_memory` | 古い記憶を新しい記憶で置き換えたと印を付ける (消さない) |
-| `forget` | 本当に要らない時だけ (lock 中は不可)。迷えば archive や supersede |
+| `supersede_memory` / `unsupersede` | 古い記憶を新しい記憶で置き換えたと印を付ける (消さない)。間違えて付けた印は `unsupersede({ id })` で外す (`id` は置き換えられた側。検索に戻る) |
+| `forget` | 本当に要らない時だけ (lock 中は不可)。迷えば supersede (archive の書き口はまだ無い) |
+| `forget_version` | 記憶の版を 1 つ消す (作者だけ、lock 中は不可、取り消せないので `confirm: true`)。本文から消した秘密が前の本文として版に残った時に。版の id は `get_memory({ id, expand: ['versions'] })` の `versions.items[].id`。見えるのは新しい 20 件だけなので、それより古い版に残った秘密まで確実に消すなら、記憶を消して作り直す |
 | `label_list` / `label_create` / `label_attach` / `label_detach` | 先に `label_list` で既存を見る。合うものが無ければ文法 (`family:leaf`) の中で `label_create({ name })`。plan の上限は server が守る |
 | `propose` | 分類 / label の統合 / 蒸留 / 矛盾 / 減衰 / 重複 / 剪定の提案。判断は人 (review 段)。report 段 (decay / duplicate) は agent 同士でも閉じる |
 | `proposal_list` / `proposal_reject` / `proposal_revert` | 提案の一覧 / 却下 / 受け入れた提案を戻す。report 段 (decay / duplicate) の受け入れは agent もできる |
@@ -59,7 +61,7 @@ tool の説明文と引数は **MCP server の定義が SSOT** (`apps/creo-mcp-s
 
 | tool | いつ |
 |---|---|
-| `create_atlas` / `list_atlas` / `get_atlas_tree` / `update_atlas` / `delete_atlas` | project や `/agent/<name>` の器。slug / path で辿れる。`delete_atlas` は記憶が 1 件でも残っていると拒否する (一覧に出ない記憶も数える) |
+| `create_atlas` / `list_atlas` / `get_atlas_tree` / `update_atlas` / `delete_atlas` | project や `/agent/<name>` の器。slug / path で辿れる。`delete_atlas` は記憶が 1 件でも残っていると拒否する (一覧に出ない記憶も数える)。`update_atlas` の `compass_guide_id` / `story_guide_id` で、コンパス / ストーリーの書き方にする記憶を指定する (`"null"` で外す。指定できるのはオーナー / admin で、この Atlas にあってオーナー / admin が書いた記憶だけ)。`compass_guide_enabled` / `story_guide_enabled` (boolean、既定 true) で、指定は残したまま生成に使うかを切り替える (オーナー / admin)。`metadata` は丸ごと置き換えだが、書き方の指定と有効 / 無効はそこでは変わらない |
 | `create_view` / `get_view` / `list_views` / `update_view` / `delete_view` | 記憶の見え方 (view) の定義 |
 
 ## session と運用
@@ -68,4 +70,4 @@ tool の説明文と引数は **MCP server の定義が SSOT** (`apps/creo-mcp-s
 |---|---|
 | `get_session` / `end_session` | session の情報 / 明示的に終える (期限切れの掃除) |
 | `get_status` / `get_user` / `generate_api_key` | server / 自分 / API key |
-| `system_health` / `diagnose` / `search_logs` | server の健康と log (何かおかしい時) |
+| `system_health` | server の健康 (何かおかしい時) |
