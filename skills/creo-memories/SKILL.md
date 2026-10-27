@@ -2,7 +2,7 @@
 name: creo-memories
 description: creo-memories = 外部脳。context が尽きても、session / machine / model / 人をまたいで続きができる場所。書くのは「次に拾う誰かのため」、読むのは「自分が始めた気になる前」。
 metadata:
-  version: 0.67.1
+  version: 0.68.0
   tags: memory, external-brain, collaboration, chronista
 ---
 
@@ -89,6 +89,7 @@ lock と unlock / review 段の提案の受け入れ / 退役の提案 (report �
 - `update_memory` / `forget` / `supersede` は lock 中に 409。`generate_story` / `generate_compass` の再生成は lock を見ずに上書き
 - `search({ atlasId })` は既定で子 atlas を含まない。含めるなら `includeDescendants: true` (読めない子は黙って落ちる。`scope: 'all'` では無意味)
 - `search({ query })` の並びは `rankScore` (類似度 + 系統の段)。同じくらい近いなら、いま有効な考え (guide / decision) が出来事 (handoff / log / 注釈) より上に来る。**完了した todo は既定で出ない** — 「前にやった作業」を探すなら `includeCompleted: true` か `lineage: "event"`。`score` は類似度のままなので、閾値の感覚は変わらない
+- 通常検索で根拠に届かない時は、必要に応じて `search({ query, atlasId, depth: "deep" })`（「深く探す」）。本文をAIで照合するため追加数秒と費用がかかる。常時・自動反復にはしない。`deepSearch.applied` を確認し、falseなら通常結果へのfallback。query必須、`useAtlasContext`との併用不可。`read`にはdepthを渡さない
 
 recipes: [recipes.md](reference/recipes.md) / 地図: [tools-map.md](reference/tools-map.md)
 

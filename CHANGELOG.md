@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.68.0] - 2026-10-28
+
+- skill / tools-map: 必要な時だけ `search(depth: "deep")` で本文を読み比べる「深く探す」を案内。通常検索と `read` は据え置き。失敗時の `deepSearch.applied=false`、追加の待ち時間・費用、query必須とAtlas context併用不可を説明。serverのlive配備後にmergeする。対PR番号はPR本文に記載。
+
 ## [0.67.1] - 2026-10-27
 
 - skill / recipes: thread の本文を現在地として書き換える手順へ。経緯は注釈、前の全文は既存の版に残し、解けた待ち・済んだ作業を畳む。引き継ぎ・完了報告の前に本文を読み直す。過去の行を本文から畳んでも仲間の線は残す。新しい tool・引数・自動要約は追加しない (creo-memories design 48 / 49)
