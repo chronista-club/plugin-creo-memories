@@ -2,7 +2,7 @@
 name: creo-memories
 description: creo-memories = 外部脳。context が尽きても、session / machine / model / 人をまたいで続きができる場所。書くのは「次に拾う誰かのため」、読むのは「自分が始めた気になる前」。
 metadata:
-  version: 0.68.1
+  version: 0.69.0
   tags: memory, external-brain, collaboration, chronista
 ---
 
@@ -39,6 +39,7 @@ metadata:
 - **context が尽きる前に handoff を 1 本** (`kind: 'handoff'`): 次の一手 / 止まっている理由 / 見ている file / 決めたこと。きっかけは場面で違う — 長い作業の節目、compaction の後 (SessionStart の hook が促す。要約を材料に書く)、終える前。「まだ書いていない」と気づいた時が書く時
 - Atlas をまたぐ 1 つの話は **スレッド**に束ねる: `kind: 'context'` + label `mark:thread`、本文は KDL の `thread "<題>" { now / waiting / remaining / note }`、仲間は `references`。詳細: [recipes.md](reference/recipes.md) の 7
 - **スレッドの本文は現在地。** 作業が進んだら既存の行を書き換え、解けた待ち・済んだ作業を畳む。経緯は注釈、前の全文は版に残る。完了報告を `now` に追記し続けない。引き継ぎ・完了報告の前に本文も読み直す
+- **一区切りついたスレッドは Web の終了案で閉じる。** 成果・持越し・現行手順への案内を人が確認して採用する。閉じた記録は通常検索に残り、関連 todo は自動完了しない。同じ目的なら理由を残して再開、別の目的なら新しいスレッドから参照する。終了印 `mark:thread-closed` は専用操作で管理する (recipes 7)
 - 既存の記憶への補足は `annotate({ targetMemoryId, content })`。スレッドの現在地は上記の手順で更新する。それ以外の本文を書き換えるのは、自分が書いた記憶の訂正だけ
 - 古い理解を新しい理解で置き換えたら `remember({ content, supersedes: ['mem_…'] })` か `supersede_memory({ id, supersededBy })`。消さない
 
