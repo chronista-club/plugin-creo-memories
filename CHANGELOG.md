@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.68.1] - 2026-10-28
+
+- recipes / tools-map: 退役提案の直近20件の採否集計と、未決案の期限切れを案内。期限切れを人の却下に数えず、履歴と採用後の取り消しを保つ。自動適用は含めない。対応serverのlive配備後にmergeする。対PR番号はPR本文に記載。
+
 ## [0.68.0] - 2026-10-28
 
 - skill / tools-map: 必要な時だけ `search(depth: "deep")` で本文を読み比べる「深く探す」を案内。通常検索と `read` は据え置き。失敗時の `deepSearch.applied=false`、追加の待ち時間・費用、query必須とAtlas context併用不可を説明。serverのlive配備後にmergeする。対PR番号はPR本文に記載。

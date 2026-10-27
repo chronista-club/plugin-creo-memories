@@ -105,5 +105,7 @@ proposal_accept({ id })   // 人が GO と言った分だけ。まとめて GO �
 proposal_reject({ id })   // 「違う」と言われたら。理由は古い記憶への annotate で残す (却下された組は 30 日は再提案されない)
 ```
 - 読み上げは session の始め (「今日の脳」の「提案 N 件」が合図)。GO の無い提案は次の session に持ち越す (期限 30 日)
+- 期限を過ぎた未決案はinboxと件数から外れる。削除も却下もされず、`proposal_list({ open: false })` で expired として辿れる。期限切れの案はaccept/rejectできないが、期限内に採用した案は期限後も `proposal_revert` で戻せる
+- `proposal_list` 末尾の `retirementStats` は、自分宛て・全Atlasの退役提案を作成順の直近20件で集計したもの。採用・却下・取り消し・未決・期限切れを分け、適用は採用の内数。kind/tierは一覧と同じ条件、open/limitは集計に影響しない。`memory_health` にも自分宛て・全Atlasの実績が出る。期限切れを却下に数えず、採用件数を精度の保証や自動適用の許可に読み替えない
 - 新旧の判断は人の仕事。agent は reason (なぜ退役なのか) を示し、迷う組は古い記憶を `get_memory` で開いて見せる
 - 退役の提案は agent は作れない (`change.retire` を付けた `propose` は server が拒む。積むのは server の規則 `creo` だけ)。手で見つけた古い記憶は、今までどおり新しい記憶に `supersedes` を付けるか `supersede_memory` で
