@@ -20,7 +20,7 @@ alias_of() {
     claude-plugin-creo-memories) echo "creo-memories" ;;
     creo-id) echo "chronista-club" ;;
     claude-plugins|claude-plugin-*) echo "chronista-plugins" ;;
-    creo-ui|creoui) echo "creoui" ;;
+    creoui) echo "creo-ui" ;;
     club-unison) echo "unison" ;;
     bikeboy|bikeboy-ladyland) echo "bikeboy-ladyland" ;;
     objectrecords|objectrecords-io) echo "objectrecords-io" ;;
