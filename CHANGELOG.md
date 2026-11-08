@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.69.1] - 2026-11-05
+
+- `infer-atlas.sh`: creo-ui repo の Atlas の name を `creoui` から `creo-ui` に改名した (2026-11-04) のに合わせ、alias を `creoui) echo "creo-ui"` に直す。repo 名 `creo-ui` は Atlas の name と同じになったので alias は要らない。旧 dir 名 `creoui` だけ新しい名前に向ける。slug は set-once (creo-memories spec O5) なので `creoui` のまま — server は name / slug / id のどれでも引ける (REST で 3 つとも確認)。`tests/test_infer_atlas.py` を追加 (改名後の 2 経路と、表に無い repo 名の素通し)
+
 ## [0.69.0] - 2026-10-28
 
 - skill / recipes: Web の終了案を確認してスレッドを閉じ、理由を残して同じ ID を再開する手順を追加。閉じた記録は通常検索に残し、関連 todo の状態は変えない。終了印は専用操作で管理し、別の目的を始める時は新しいスレッドから参照する。現在地の更新案の説明も現行の動作に揃える。対応 server の live 配備後に merge する。対 PR 番号は PR 本文に記載。
