@@ -2,7 +2,7 @@
 name: creo-memories
 description: creo-memories = 外部脳。context が尽きても、session / machine / model / 人をまたいで続きができる場所。書くのは「次に拾う誰かのため」、読むのは「自分が始めた気になる前」。
 metadata:
-  version: 0.70.0
+  version: 0.71.0
   tags: memory, external-brain, collaboration, chronista
 ---
 
@@ -60,7 +60,8 @@ metadata:
 - mako 個人の情報や一回性の感想は書かない
 
 ### 読む
-- 「今日の脳」(やること / 考え / 出来事 / 提案 / lock 中) は instructions に届く既定の atlas の分。project の分は `briefing({ atlasId })`
+- 「今日の脳」(進行中のスレッド / やること / 考え / 出来事 / 提案 / lock 中) は instructions に届く既定の atlas の分。project の分は `briefing({ atlasId })`
+- 先頭の「進行中のスレッド」は、どの仕事の途中か。「⚠ N 日動いていない」が付いたものは放っておかない: 本文を `get_memory` で読み、今の事実に書き直すか、区切りがついていれば `close_thread` で閉じる (自分のスレッドだけ。「読むだけ」は他の人のものか lock 中)
 - 前提にする前に `search({ query, atlasId })`。`atlasId` は既定でその atlas だけ。子 atlas も一緒に引くなら `search({ query, atlasId, includeDescendants: true })` (親 + read できる子孫。`/agent` を親にすれば `/agent/<自分>` も入る)
 - todo を始める前に `read({ resource: 'todo' })`。終えたら `complete_todo({ id })`
 
