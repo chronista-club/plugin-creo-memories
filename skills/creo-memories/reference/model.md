@@ -46,7 +46,7 @@
 
 - 記憶の分類・統合・蒸留・矛盾・減衰・重複・剪定は **agent が `propose` で提案し、人が受け入れる**。提案は一つの入れ物 (`proposals`)、受け入れは 3 段 (報告のみ / 受け入れ・却下 / 提案しない)
 - review 段の `proposal_accept` は人だけ (agent の自己承認は server が拒否)
-- **briefing** (D14) = session 開始に自動で入る「今日の脳」: やること (priority 順) / 考え (有効なもの) / 出来事 (直近) / 提案 (open) / lock 中。`briefing` tool で読み直せる
+- **briefing** (D14) = session 開始に自動で入る「今日の脳」: 進行中のスレッド (題・今どこの 1 行・最後の更新日。7 日動いていないものに印) / やること (priority 順) / 考え (有効なもの) / 出来事 (直近) / 提案 (open) / lock 中。`briefing` tool で読み直せる
 
 ## 自己と cache (D7 / D8 / D28)
 
