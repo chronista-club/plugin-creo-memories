@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.70.0] - 2026-11-20
+
+- skill / recipes / tools-map: スレッドを agent が閉じる・戻す `close_thread` / `reopen_thread` を案内 (creo-memories #1236、live は v0.115.0)。**既定は自律** — 区切りがついたら人に確かめるのを待たずに閉じ、その代わり跡を正確に残す (`outcome` は確かめた事実だけ、`reason` は閉じると判断した根拠)。前の本文は版に残り、`reopen_thread` で進行中に戻せる。`restore: true` で閉じる前の本文にも戻る (戻す時にだけ付けられる。閉じた後に本文を変えていない時だけ)。MCP の版は冒頭の抜き書きなので、版から本文を書き直さない。人が Web で終了案を採用して閉じる道はそのまま。裁定は mako 2026-11-20「デフォルトで自律でいこうか。」
+
 ## [0.69.1] - 2026-11-05
 
 - `infer-atlas.sh`: creo-ui repo の Atlas の name を `creoui` から `creo-ui` に改名した (2026-11-04) のに合わせ、alias を `creoui) echo "creo-ui"` に直す。repo 名 `creo-ui` は Atlas の name と同じになったので alias は要らない。旧 dir 名 `creoui` だけ新しい名前に向ける。slug は set-once (creo-memories spec O5) なので `creoui` のまま — server は name / slug / id のどれでも引ける (REST で 3 つとも確認)。`tests/test_infer_atlas.py` を追加 (改名後の 2 経路と、表に無い repo 名の素通し)

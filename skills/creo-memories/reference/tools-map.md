@@ -44,6 +44,7 @@ tool の説明文と引数は **MCP server の定義が SSOT** (`apps/creo-mcp-s
 | tool | いつ |
 |---|---|
 | `supersede_memory` / `unsupersede` | 古い記憶を新しい記憶で置き換えたと印を付ける (消さない)。間違えて付けた印は `unsupersede({ id })` で外す (`id` は置き換えられた側。検索に戻る) |
+| `close_thread` / `reopen_thread` | スレッド (label `mark:thread`) を閉じる・戻す。一区切りついたら自分の判断で `close_thread({ id, outcome, reason })` (既定は自律。`outcome` は確かめた事実だけ)。本文がまとめに置き換わり、前の本文は版に残る。関連 todo は完了にならない。続きが出たら `reopen_thread({ id, reason })`、閉じる前の本文にも戻すなら `restore: true` (戻す時にだけ付けられる)。作者だけ、lock 中は不可 (recipes 7) |
 | `forget` | 本当に要らない時だけ (lock 中は不可)。迷えば supersede (archive の書き口はまだ無い) |
 | `forget_version` | 記憶の版を 1 つ消す (作者だけ、lock 中は不可、取り消せないので `confirm: true`)。本文から消した秘密が前の本文として版に残った時に。版の id は `get_memory({ id, expand: ['versions'] })` の `versions.items[].id`。見えるのは新しい 20 件だけなので、それより古い版に残った秘密まで確実に消すなら、記憶を消して作り直す |
 | `label_list` / `label_create` / `label_attach` / `label_detach` | 先に `label_list` で既存を見る。合うものが無ければ文法 (`family:leaf`) の中で `label_create({ name })`。plan の上限は server が守る |
