@@ -48,7 +48,8 @@ tool の説明文と引数は **MCP server の定義が SSOT** (`apps/creo-mcp-s
 | `forget` | 本当に要らない時だけ (lock 中は不可)。迷えば supersede (archive の書き口はまだ無い) |
 | `forget_version` | 記憶の版を 1 つ消す (作者だけ、lock 中は不可、取り消せないので `confirm: true`)。本文から消した秘密が前の本文として版に残った時に。版の id は `get_memory({ id, expand: ['versions'] })` の `versions.items[].id`。見えるのは新しい 20 件だけなので、それより古い版に残った秘密まで確実に消すなら、記憶を消して作り直す |
 | `label_list` / `label_create` / `label_attach` / `label_detach` | 先に `label_list` で既存を見る。合うものが無ければ文法 (`family:leaf`) の中で `label_create({ name })`。plan の上限は server が守る |
-| `propose` | 分類 / label の統合 / 蒸留 / 矛盾 / 減衰 / 重複 / 剪定の提案。判断は人 (review 段)。report 段 (decay / duplicate) は agent 同士でも閉じる |
+| `propose` | 分類 / label の統合 / 蒸留 / 矛盾 / 減衰 / 重複 / 剪定の提案。迷う判断を人や次の agent に委ねたい時に積む |
+| `proposal_accept` | 提案を受け入れる (適用まで走る種類は `proposal_revert` で戻せる)。根拠を確かめたら agent が自分で受け入れてよい。受け入れた agent は提案に残る (`decidedAgent`)。削除候補 (prune) は人だけ、退役の提案は人の GO 後 (recipes 8) |
 | `proposal_list` / `proposal_reject` / `proposal_revert` | 期限内の未決提案の一覧 / 却下 / 採用を戻す。open: falseは決着済み・期限切れも表示。末尾に退役提案の直近20件の採否実績。退役提案のacceptは人のGO後 (recipes 8) |
 
 ## 人だけができること (agent は頼む)
@@ -56,7 +57,7 @@ tool の説明文と引数は **MCP server の定義が SSOT** (`apps/creo-mcp-s
 | tool | 意味 |
 |---|---|
 | `lock_memory` / `unlock_memory` / `label_lock` / `label_unlock` | lock = 消えない・隠れない・本文と状態が変わらない (D21)。移動 / label / 関係 / 再生成は通る |
-| `proposal_accept` (review 段) | review 段 (classify / label_create / label_merge / distill / contradiction / prune) の受け入れ。agent の自己承認は server が拒否 |
+| `proposal_accept` (削除候補) | 削除候補 (prune) の受け入れ。戻せないので人だけ (agent からは server が拒否) |
 
 ## 場所 (atlas) と共有
 

@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.72.0] - 2026-11-20
+
+- skill / model / recipes / tools-map: 提案の受け入れ (`proposal_accept`) を agent に開いた (creo-memories #1239、live は v0.117.0)。**人だけに残るのは削除候補 (prune) の受け入れと lock / unlock**。それ以外の提案は、根拠を確かめたら agent が自分で受け入れ・却下してよい。決めた agent は提案に残る (`decidedAgent`)。スレッドの終了案を採用した時は、版と終了の注釈にも残る。退役の提案の「人の GO を得てから」は変えていない。裁定は mako 2026-11-20「これいいと思う」(線は「戻せる操作は agent に任せて跡を残す。戻しにくい操作は人が通す」)
+
 ## [0.71.0] - 2026-11-20
 
 - skill / model / tools-map: briefing (「今日の脳」) の先頭に「進行中のスレッド」(creo-memories #1238)。題・今どこの 1 行・最後の更新日が出て、7 日動いていないものに印が付く (`stale=#true`)。印の付いたスレッドは、本文を `get_memory` で読んで今の事実に書き直すか、区切りがついていれば `close_thread` で閉じる。書き直せる・閉じられるのは自分のスレッドだけ (`manage=#false` は他の人のものか lock 中)。裁定は mako 2026-11-20「その提案全面採用。」
