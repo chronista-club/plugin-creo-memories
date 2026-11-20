@@ -2,7 +2,7 @@
 name: creo-memories
 description: creo-memories = 外部脳。context が尽きても、session / machine / model / 人をまたいで続きができる場所。書くのは「次に拾う誰かのため」、読むのは「自分が始めた気になる前」。
 metadata:
-  version: 0.71.0
+  version: 0.72.0
   tags: memory, external-brain, collaboration, chronista
 ---
 
@@ -72,7 +72,8 @@ metadata:
 - 要らない記憶は `forget` より supersede (archive の書き口はまだ無い)。lock 中は 409 — unlock は人に頼む
 
 ### 人だけができること
-lock と unlock / review 段の提案の受け入れ / 退役の提案 (report 段) を「押す」判断。agent は頼む・提案する・読み上げる。
+lock と unlock / 削除候補 (prune) の提案の受け入れ / 退役の提案を「押す」判断。agent は頼む・提案する・読み上げる。
+それ以外の提案 (分類、label の新設・統合、蒸留 = スレッドの更新案・終了案・手順案、矛盾、減衰、重複) は、根拠を確かめたら agent が自分で `proposal_accept` / `proposal_reject` してよい (既定は自律)。決めた agent は提案に残る (`decidedAgent`)。迷うものは決めずに人に見せる。
 
 ## D. 他者と
 

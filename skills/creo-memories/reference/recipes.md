@@ -54,7 +54,7 @@ complete_todo({ id })
 
 - 相手が拾う前提で書く: 題 / 結論 / 次の一手。相手の名前は本文に (sender は server が付ける)
 - 引き継ぎは todo (相手の atlas か project atlas) + annotation。wire / chat は通知だけ
-- 人に頼むこと (lock / review 段の提案の受け入れ) は todo か annotation で**頼む**。代わりにやろうとしない (server が拒否する)
+- 人に頼むこと (lock / 削除候補の提案の受け入れ) は todo か annotation で**頼む**。代わりにやろうとしない (server が拒否する)
 - 会話の記録が要るなら `record_work_log({ content, workLogType: 'decision', sender, receiver })`
 
 ## 7. スレッドを編む — Atlas をまたいで 1 つの話を束ねる
@@ -130,7 +130,7 @@ reopen_thread({ id: 'mem_…', reason: '閉じたのは早かった', restore: t
 
 #### 人が Web で閉じる
 
-Web の「スレッド」は「進行中 / 閉じた / すべて」。所有者の unlocked な KDL スレッドで「終了案を作る」を押し、成果・持越し・現行手順への案内と根拠を確認する。生成だけでは本文も状態も変わらない。終了案は review 段で、人が採用する (server の AI が全文を読んで作る案なので、人が確かめる)。
+Web の「スレッド」は「進行中 / 閉じた / すべて」。所有者の unlocked な KDL スレッドで「終了案を作る」を押し、成果・持越し・現行手順への案内と根拠を確認する。生成だけでは本文も状態も変わらない。終了案は review 段。Web では人が確かめて採用する。agent も `proposal_accept` で採用できる (本文と根拠を自分で読んで確かめてから。採用した agent は提案・版・終了の注釈に残り、`proposal_revert` で戻せる)。
 
 - 未完の関連 todo があれば一覧で示され、ボタンは「残件を残して閉じる」。閉じても todo の状態は変わらない。引き継ぐ先や残件を、完了したものとしてまとめない。
 - 採用すると同じ ID・参照を保ち、前の本文は版、終了の経緯は注釈に残る。`kind: context` と `mark:thread` のまま `mark:thread-closed` が付き、通常検索でも閉じた記録と分かる。archive / supersede / todo の完了とは別。
