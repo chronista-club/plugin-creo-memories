@@ -44,10 +44,12 @@ while [ $# -gt 0 ]; do
 done
 
 if [ "$mode" = "background" ]; then
-  # hook の stdin (JSON) から cwd。読めなければ $PWD
+  # hook の stdin (JSON) から cwd (Antigravity は cwd または workspacePaths[0])。読めなければ $PWD
+  is_agy=""
   if [ -n "$JQ" ]; then
     input=$(cat 2>/dev/null || true)
-    cwd=$(printf '%s' "$input" | $JQ -r '.cwd // empty' 2>/dev/null || true)
+    cwd=$(printf '%s' "$input" | $JQ -r '.cwd // .workspacePaths[0] // empty' 2>/dev/null || true)
+    is_agy=$(printf '%s' "$input" | $JQ -r 'if has("hookEventName") or has("conversationId") or has("workspacePaths") then "1" else "" end' 2>/dev/null || true)
   fi
   [ -z "$cwd" ] && cwd="$PWD"
   mkdir -p "$STATE_DIR"
@@ -56,6 +58,7 @@ if [ "$mode" = "background" ]; then
   if [ -f "$log" ] && [ "$(wc -l < "$log")" -gt 500 ]; then tail -n 300 "$log" > "$log.$$" && mv -f "$log.$$" "$log"; fi
   printf '== %s %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$cwd" >> "$log"
   nohup bash "$0" --cwd "$cwd" >> "$log" 2>&1 < /dev/null &
+  [ "$is_agy" = "1" ] && printf '{}\n'
   exit 0
 fi
 
