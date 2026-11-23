@@ -16,11 +16,11 @@
     ],
     "PreToolUse": [
       {
-        "matcher": "Write",
+        "matcher": "Write|write_to_file|write_file|edit_file",
         "hooks": [
           {
             "type": "command",
-            "command": "sh -c 'JQ=$(command -v jaq 2>/dev/null || command -v jq); input=$(cat); path=$(echo \"$input\" | $JQ -r \".tool_input.file_path // \\\"\\\"\"); if echo \"$path\" | grep -qE \"/memory/.*\\\\.md$\"; then echo '\"'\"'{\"hookSpecificOutput\": {\"hookEventName\": \"PreToolUse\", \"additionalContext\": \"creo: local memory は creo の写しです (正本は /agent/<自分>)。先に remember しましたか。local にしか無い事実を作らない。\"}}'\"'\"'; fi'"
+            "command": "sh -c 'JQ=$(command -v jaq 2>/dev/null || command -v jq); input=$(cat); is_agy=$(printf \"%s\" \"$input\" | $JQ -r \"if has(\\\"hookEventName\\\") or has(\\\"conversationId\\\") or has(\\\"toolCall\\\") then \\\"1\\\" else \\\"\\\" end\" 2>/dev/null || true); path=$(printf \"%s\" \"$input\" | $JQ -r \".tool_input.file_path // .toolCall.args.Path // \\\"\\\"\" 2>/dev/null || true); if printf \"%s\" \"$path\" | grep -qE \"/memory/.*\\\\.md$\"; then if [ \"$is_agy\" = \"1\" ]; then printf \"%s\\n\" \"{\\\"decision\\\":\\\"allow\\\",\\\"reason\\\":\\\"creo: local memory は creo の写しです (正本は /agent/<自分>)。先に remember しましたか。local にしか無い事実を作らない。\\\"}\"; else printf \"%s\\n\" \"{\\\"hookSpecificOutput\\\": {\\\"hookEventName\\\": \\\"PreToolUse\\\", \\\"additionalContext\\\": \\\"creo: local memory は creo の写しです (正本は /agent/<自分>)。先に remember しましたか。local にしか無い事実を作らない。\\\"}}\"; fi; elif [ \"$is_agy\" = \"1\" ]; then printf \"%s\\n\" \"{\\\"decision\\\":\\\"allow\\\"}\"; fi'"
           }
         ]
       }

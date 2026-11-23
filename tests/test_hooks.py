@@ -75,5 +75,47 @@ class CreoSessionHooks(unittest.TestCase):
         self.assertNotIn('PreCompact', hooks)
         self.assertNotIn('Stop', hooks)
 
+    def test_agy_session_start_outputs_inject_steps_json(self):
+        with tempfile.TemporaryDirectory() as temp:
+            project = Path(temp) / 'go-fast-packing'
+            project.mkdir()
+            env = {k: v for k, v in os.environ.items() if not k.startswith('GIT_')}
+            r = subprocess.run(
+                ['bash', str(ROOT / 'hooks/session-start.sh')],
+                input=json.dumps({
+                    'hookEventName': 'SessionStart',
+                    'conversationId': 'conv-1',
+                    'workspacePaths': [str(project)],
+                }),
+                text=True, env=env, capture_output=True
+            )
+            self.assertEqual(r.returncode, 0, r.stderr)
+            data = json.loads(r.stdout)
+            msg = data['injectSteps'][0]['systemMessage']['systemMessage']
+            self.assertIn('Go Fast Packing', msg)
+            self.assertIn('briefing({ atlasId })', msg)
+
+    def test_pre_tool_use_handles_claude_and_agy_payloads(self):
+        hooks = json.loads((ROOT / 'hooks/hooks.json').read_text())['hooks']
+        cmd = hooks['PreToolUse'][0]['hooks'][0]['command']
+        # Claude Code: /memory/foo.md → hookSpecificOutput
+        r1 = subprocess.run(cmd, shell=True, input=json.dumps({'tool_input': {'file_path': '/Users/x/.claude/projects/p/memory/foo.md'}}), text=True, capture_output=True)
+        self.assertEqual(r1.returncode, 0)
+        self.assertIn('hookSpecificOutput', json.loads(r1.stdout))
+        # Claude Code: non-memory → empty stdout
+        r2 = subprocess.run(cmd, shell=True, input=json.dumps({'tool_input': {'file_path': '/Users/x/src/main.rs'}}), text=True, capture_output=True)
+        self.assertEqual(r2.returncode, 0)
+        self.assertEqual(r2.stdout.strip(), '')
+        # Antigravity: /memory/foo.md → decision allow + reason
+        r3 = subprocess.run(cmd, shell=True, input=json.dumps({'hookEventName': 'PreToolUse', 'toolCall': {'name': 'write_file', 'args': {'Path': '/Users/x/.claude/projects/p/memory/foo.md'}}}), text=True, capture_output=True)
+        self.assertEqual(r3.returncode, 0)
+        d3 = json.loads(r3.stdout)
+        self.assertEqual(d3['decision'], 'allow')
+        self.assertIn('creo:', d3['reason'])
+        # Antigravity: non-memory → decision allow
+        r4 = subprocess.run(cmd, shell=True, input=json.dumps({'hookEventName': 'PreToolUse', 'toolCall': {'name': 'write_file', 'args': {'Path': '/Users/x/src/main.rs'}}}), text=True, capture_output=True)
+        self.assertEqual(r4.returncode, 0)
+        self.assertEqual(json.loads(r4.stdout), {'decision': 'allow'})
+
 if __name__ == '__main__':
     unittest.main()
